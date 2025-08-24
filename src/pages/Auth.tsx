@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { User } from "../types";
 
 type AuthForm = {
   email: string;
@@ -8,7 +9,7 @@ type AuthForm = {
   role?: string;
 };
 
-const Auth : React.FC = () => {
+const Auth : React.FC<{setUser: any}>  = ({ setUser }: { setUser: (u: User) => void }) => {
   const navigate = useNavigate();
   const [form, setForm] = useState<AuthForm>({
     email: "",
@@ -89,7 +90,8 @@ const Auth : React.FC = () => {
             "refreshToken",
             JSON.stringify(data?.data.tokens.refreshToken.refresh)
           );
-          navigate("/", { replace: true });
+          setUser(data?.data?.data); // cập nhật state ở App
+          navigate("/"); // chuyển về dashboard
         }
       } else {
         setMessage(data.message || data.data?.message || "Có lỗi xảy ra!");
