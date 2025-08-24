@@ -1,6 +1,5 @@
 import 'react-toastify/dist/ReactToastify.css';
-// import { Toast } from "./components/Toast";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { Suspense, useEffect, useState } from "react";
 import Loading from "./components/Loading";
 import Auth from "./pages/Auth";
@@ -14,12 +13,12 @@ import { ToastContainer } from 'react-toastify';
 function AppContent() {
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
-
-  // Cứ mỗi lần đổi route → check lại localStorage
+  const navigate = useNavigate();
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("user") || "null");
-    console.log("u::", u);
-    
+    if(!u) {
+      navigate("/auth");
+    }
     setUser(u);
   }, [location]);
 
@@ -30,7 +29,6 @@ function AppContent() {
           <>
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            {/* <Route path="*" element={<Navigate to="/auth"  />} /> */}
           </>
         ) : (
           <>
