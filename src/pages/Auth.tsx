@@ -69,7 +69,7 @@ const Auth : React.FC<{setUser: any}>  = ({ setUser }: { setUser: (u: User) => v
     const endpoint = isRegister ? "/sign-up" : "/sign-in";
       
     try {
-      const response = await fetch(`http://localhost:4002/api/user${endpoint}`, {
+      const response = await fetch(`https://smashing-valid-jawfish.ngrok-free.app/api/user${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: isRegister? JSON.stringify(form) : JSON.stringify({ email: form.email, password: form.password }),

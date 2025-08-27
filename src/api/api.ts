@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:4002/api",
+  baseURL: "https://smashing-valid-jawfish.ngrok-free.app/api",
   headers: {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
@@ -61,7 +61,7 @@ api.interceptors.response.use(
         const refreshToken = JSON.parse(
           String(localStorage.getItem("refreshToken"))
         );
-        const res = await axios.post("http://localhost:4002/api/auth/refresh", {
+        const res = await axios.post("https://smashing-valid-jawfish.ngrok-free.app/api/auth/refresh", {
           refreshToken,
         });
         console.log("res refresh::", res);
