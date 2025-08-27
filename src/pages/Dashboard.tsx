@@ -54,10 +54,9 @@ const Dashboard = ({ userRole }: { userRole: string }) => {
   const handleUpdateClass = async (id: string, updatedClass: Partial<ClassI>) => {
     try {
       const response = await updateClass(id, updatedClass);
-      console.log("response::", response);
 
       if (response?.data) {
-        const updatedClasses = [...classes]; // copy mảng gốc
+        const updatedClasses = [...classes]; 
         const index = updatedClasses.findIndex(
           (classItem) =>
             String(classItem._id) === String(response.data._id) ||
@@ -65,10 +64,9 @@ const Dashboard = ({ userRole }: { userRole: string }) => {
         );
 
         if (index !== -1) {
-          // cập nhật phần tử đúng vị trí
           updatedClasses[index] = {
-            ...updatedClasses[index], // giữ field cũ nếu response không có
-            ...response.data          // ghi đè field mới
+            ...updatedClasses[index],  
+            ...response.data          
           };
         }
 

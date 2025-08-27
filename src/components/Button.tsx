@@ -3,7 +3,7 @@ const Button = ({ children, variant = 'primary', size = 'md', onClick, className
     children: React.ReactNode;
     variant?: 'primary' | 'secondary' | 'danger';
     size?: 'sm' | 'md' | 'lg';
-    onClick?: () => void;
+    onClick?: () => void | Promise<any>;
     className?: string;
     type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;

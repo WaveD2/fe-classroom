@@ -107,11 +107,9 @@ const ClassGrid = ({ classes, onClassClick, onUpdateClass, onDeleteClass }: Prop
               )}
             </div>
 
-            {/* Nội dung chính */}
             <div className="flex items-center justify-between mb-2 mr-5">
               <p className="flex items-center">
                 <h3 className="font-semibold text-lg">{classItem.name}</h3>
-                {/* <span className={`ml-2 px-2 rounded-full text-xs ${classItem.status == STATUS_CLASS.OPEN ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{classItem.status == STATUS_CLASS.OPEN ? 'Đang học' : 'Đã đóng'}</span> */}
               </p>
               
               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full ">

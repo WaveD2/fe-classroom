@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Button from './Button';
-import { QrCode, Users, Clock, History } from 'lucide-react'; 
+import { QrCode, Users, Clock, History, Download } from 'lucide-react'; 
 import QRGenerator from './QRGenerator';
 import StudentList from './StudentList';
 import AttendanceHistory from './AttendanceHistory';
@@ -10,7 +10,7 @@ import QRDetailModal from './QRDetailModal';
 import { ROLE, STATUS_CLASS } from '../types';
 import type { ClassI, User, HistoryAttendance, QrHistoryI } from '../types'; 
 import { getAllQR } from '../api/qr';
-import { getClassDetail } from '../api/class';
+import { exportAttendanceClass, getClassDetail } from '../api/class';
 
 const ClassDetailView = ({ classData, userRole, onBack }: {
   classData: ClassI;
@@ -91,10 +91,19 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
           <div className='flex gap-2'>
             <div className="flex gap-2">
             <Button 
-              onClick={() => setShowQRGenerator(true)} 
+              onClick={async () => {
+                const data :any= await exportAttendanceClass( classData._id || classData.id);
+                const blob = new Blob([data], { type: "application/octet-stream" });
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = blobUrl;
+                a.download = `${new Date().toISOString()}.xlsx`;
+                a.click();
+                URL.revokeObjectURL(blobUrl);
+              }} 
               className="flex items-center gap-2 rounded-xl shadow-md hover:shadow-lg transition-all"
             >
-              <QrCode className="w-5 h-5" />
+              <Download className="w-5 h-5" />
               <span>Xuất dữ liệu</span>
             </Button>
           </div>

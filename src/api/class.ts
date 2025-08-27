@@ -36,3 +36,8 @@ export const getClass = async () => {
     const response = await api.delete(`/class/${classId}`);
     return response.data;
   };
+
+  export const exportAttendanceClass = async (classId: string, filter?: Record<string, any>) => {
+    const response = await api.get(`/class/${classId}/download`, { params: filter , responseType: "arraybuffer" });
+    return response.data;
+  };
