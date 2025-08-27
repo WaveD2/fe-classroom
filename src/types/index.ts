@@ -5,7 +5,7 @@ export enum ROLE {
 
 export enum STATUS_CLASS {
     OPEN = 'open',
-    CLOSED = 'closed'
+    CLOSED = 'close'
 }
 
 export interface DateTime{

@@ -6,8 +6,8 @@ import SearchBar from "../components/Search";
 import ClassGrid from "../components/ClassGrid";
 import QRScanner from "../components/QrScan";
 import { ClassI, ROLE } from "../types";
-import { createClass, getClass } from "../api/class";
-import { showError } from "../components/Toast";
+import { createClass, deleteClass, getClass, updateClass } from "../api/class";
+import { showError, showSuccess } from "../components/Toast";
 
 
 const Dashboard = ({ userRole }: { userRole: string }) => {
@@ -36,21 +36,58 @@ const Dashboard = ({ userRole }: { userRole: string }) => {
     }
   };
   
+  const fetchClasses = async () => {
+    try {
+      const response = await getClass();
+      if (response?.data?.length) {
+        setClasses(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const response = await getClass();
-        if (response?.data?.length) {
-          setClasses(response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching classes:', error);
-      }
-    };
-
     fetchClasses();
   }, []);
+
+  const handleUpdateClass = async (id: string, updatedClass: Partial<ClassI>) => {
+    try {
+      const response = await updateClass(id, updatedClass);
+      console.log("response::", response);
+
+      if (response?.data) {
+        const updatedClasses = [...classes]; // copy mảng gốc
+        const index = updatedClasses.findIndex(
+          (classItem) =>
+            String(classItem._id) === String(response.data._id) ||
+            String(classItem.id) === String(response.data.id)
+        );
+
+        if (index !== -1) {
+          // cập nhật phần tử đúng vị trí
+          updatedClasses[index] = {
+            ...updatedClasses[index], // giữ field cũ nếu response không có
+            ...response.data          // ghi đè field mới
+          };
+        }
+
+        setClasses(updatedClasses);
+        showSuccess("Cập nhật lớp học thành công");
+      }
+    } catch (error) {
+      console.error('Error updating class:', error);
+    }
+  };
+
+  const handleDeleteClass = async (id: string) => {
+    try {
+      await deleteClass(id);
+      await fetchClasses();
+    } catch (error) {
+      console.error('Error deleting class:', error);
+    }
+  };
 
   if (selectedClass) {
     return (
@@ -115,6 +152,8 @@ const Dashboard = ({ userRole }: { userRole: string }) => {
         <ClassGrid
           classes={filteredClasses}
           onClassClick={setSelectedClass}
+          onUpdateClass={handleUpdateClass}
+          onDeleteClass={handleDeleteClass}
         />
       </div>
 

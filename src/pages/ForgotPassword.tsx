@@ -52,7 +52,7 @@ const ForgotPassword: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "https://smashing-valid-jawfish.ngrok-free.app/api/user/forgot-password/request",
+        "http://localhost:4002/api/user/forgot-password/request",
         { email }
       );
       if (response.data.status === 200) {
@@ -79,7 +79,7 @@ const ForgotPassword: React.FC = () => {
 
     try {
       const response: any = await axios.post<ApiResponse<ConfirmResponse>>(
-        "https://smashing-valid-jawfish.ngrok-free.app/api/user/forgot-password/confirm",
+        "http://localhost:4002/api/user/forgot-password/confirm",
         { email, code: otp }
       );
       if (response.data.status === 200) {
@@ -111,7 +111,7 @@ const ForgotPassword: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "https://smashing-valid-jawfish.ngrok-free.app/api/user/forgot-password",
+        "http://localhost:4002/api/user/forgot-password",
         { email, password }
       );
       if (response.data.status === 200) {

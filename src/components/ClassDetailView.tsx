@@ -7,7 +7,7 @@ import AttendanceHistory from './AttendanceHistory';
 import QRHistoryList from './QRHistoryList';
 import StudentDetailModal from './StudentDetailModal';
 import QRDetailModal from './QRDetailModal';
-import { ROLE } from '../types';
+import { ROLE, STATUS_CLASS } from '../types';
 import type { ClassI, User, HistoryAttendance, QrHistoryI } from '../types'; 
 import { getAllQR } from '../api/qr';
 import { getClassDetail } from '../api/class';
@@ -79,11 +79,25 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
           >
             ← Quay lại
           </button>
-          <h2 className="text-2xl font-bold truncate">{classData.name}</h2>
+          <div className='flex items-center'>
+            <h2 className="text-2xl font-bold truncate">{classData.name}</h2>
+            <p className={`ml-2 px-2 rounded-full text-sm ${classData.status == STATUS_CLASS.OPEN ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{classData.status == STATUS_CLASS.OPEN ? 'Đang học' : 'Đã đóng'}</p>
+          </div>
+          
           <p className="text-gray-600 text-sm">Mã lớp: {classData.uniqueCode}</p>
         </div>
   
         {userRole === ROLE.TEACHER && (
+          <div className='flex gap-2'>
+            <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowQRGenerator(true)} 
+              className="flex items-center gap-2 rounded-xl shadow-md hover:shadow-lg transition-all"
+            >
+              <QrCode className="w-5 h-5" />
+              <span>Xuất dữ liệu</span>
+            </Button>
+          </div>
           <div className="flex gap-2">
             <Button 
               onClick={() => setShowQRGenerator(true)} 
@@ -92,6 +106,7 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
               <QrCode className="w-5 h-5" />
               <span>Tạo mã QR</span>
             </Button>
+          </div>
           </div>
         )}
       </div>
