@@ -83,74 +83,73 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-3 sm:px-4 lg:px-8">
           {/* Back Button */}
-          <div className="py-4">
+          <div className="py-3 sm:py-4">
             <button 
               onClick={onBack}
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Quay lại</span>
+              <span className="font-medium text-sm sm:text-base">Quay lại</span>
             </button>
           </div>
 
           {/* Class Info */}
-          <div className="pb-6">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              {/* Class Details */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-blue-100 rounded-xl">
-                      <BookOpen className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
-                        {classData.name}
-                      </h1>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                          classData.status === STATUS_CLASS.OPEN 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {classData.status === STATUS_CLASS.OPEN ? 'Đang học' : 'Đã đóng'}
-                        </span>
-                        <span className="text-gray-500 text-sm">
-                          {classData.studentCount || listStudent.length} học sinh
-                        </span>
-                      </div>
-                    </div>
+          <div className="pb-4 sm:pb-6">
+            {/* Class Details - Mobile First */}
+            <div className="space-y-4">
+              {/* Class Title and Status */}
+              <div className="flex items-start gap-3">
+                <div className="p-2 sm:p-3 bg-blue-100 rounded-lg sm:rounded-xl flex-shrink-0">
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
+                    {classData.name}
+                  </h1>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+                    <span className={`inline-flex items-center px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium w-fit ${
+                      classData.status === STATUS_CLASS.OPEN 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {classData.status === STATUS_CLASS.OPEN ? 'Đang học' : 'Đã đóng'}
+                    </span>
+                    <span className="text-gray-500 text-xs sm:text-sm">
+                      {classData.studentCount || listStudent.length} học sinh
+                    </span>
                   </div>
                 </div>
-
-                {/* Class Code */}
-                <div className="flex items-center gap-2 text-gray-600 mb-4">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm">Mã lớp: <span className="font-mono font-medium">{classData.uniqueCode}</span></span>
-                </div>
-
-                {/* Teacher Info for Admin */}
-                {userRole === ROLE.ADMIN && teacher && (
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <GraduationCap className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-blue-600 font-medium">Giáo viên phụ trách</p>
-                        <p className="text-lg font-semibold text-blue-900">{teacher.name}</p>
-                        <p className="text-sm text-blue-700">{teacher.email}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Class Code */}
+              <div className="flex items-center gap-2 text-gray-600">
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm break-all">
+                  Mã lớp: <span className="font-mono font-medium">{classData.uniqueCode}</span>
+                </span>
+              </div>
+
+              {/* Teacher Info for Admin */}
+              {userRole === ROLE.ADMIN && teacher && (
+                <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-blue-600 font-medium">Giáo viên phụ trách</p>
+                      <p className="text-sm sm:text-lg font-semibold text-blue-900 break-words">{teacher.name}</p>
+                      <p className="text-xs sm:text-sm text-blue-700 break-all">{teacher.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons - Mobile Optimized */}
               {userRole === ROLE.TEACHER && (
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <Button 
                     onClick={async () => {
                       try {
@@ -166,16 +165,16 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
                         console.error('Export error:', error);
                       }
                     }} 
-                    className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
                   >
-                    <Download className="w-5 h-5" />
+                    <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="font-medium">Xuất dữ liệu</span>
                   </Button>
                   <Button 
                     onClick={() => setShowQRGenerator(true)} 
-                    className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
                   >
-                    <QrCode className="w-5 h-5" />
+                    <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="font-medium">Tạo mã QR</span>
                   </Button>
                 </div>
@@ -187,24 +186,25 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
 
       {/* Tab Navigation */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8 overflow-x-auto">
+        <div className="w-full px-3 sm:px-4 lg:px-8">
+          <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
             {[
-              { key: "students", label: "Học sinh", icon: Users },
-              { key: "attendance", label: "Điểm danh", icon: Clock },
-              ...(userRole === ROLE.TEACHER ? [{ key: "qr", label: "Lịch sử QR", icon: History }] : []),
+              { key: "students", label: "Học sinh", icon: Users, shortLabel: "HS" },
+              { key: "attendance", label: "Điểm danh", icon: Clock, shortLabel: "DD" },
+              ...(userRole === ROLE.TEACHER ? [{ key: "qr", label: "Lịch sử QR", icon: History, shortLabel: "QR" }] : []),
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-1 py-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1 sm:gap-2 px-2 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex-shrink-0 ${
                   activeTab === tab.key 
                     ? "border-blue-500 text-blue-600" 
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
-                <tab.icon className="w-5 h-5" />
-                <span>{tab.label}</span>
+                <tab.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
               </button>
             ))}
           </nav>
@@ -212,12 +212,12 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="text-gray-600">Đang tải dữ liệu...</p>
+          <div className="flex items-center justify-center h-48 sm:h-64">
+            <div className="flex flex-col items-center gap-3 sm:gap-4">
+              <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
+              <p className="text-gray-600 text-sm sm:text-base">Đang tải dữ liệu...</p>
             </div>
           </div>
         ) : (
