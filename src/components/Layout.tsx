@@ -2,21 +2,45 @@ import { Outlet } from "react-router-dom";
 import { Home, Menu, LogOut, User as UserIcon } from "lucide-react";
 import { useState } from "react";
 import {  User } from "../types";
-import { logout } from "../api/auth";
+import { logout, updateProfile } from "../api/auth";
+import ProfileModal from "./ProfileModal";
 
 export default function Layout({ user }: { user: User }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  const handleUpdateProfile = async (userData: Partial<User>) => {
+    const response = await updateProfile(userData);
+    if (response?.data) {
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { ...currentUser, ...response.data };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    return response;
+  };
 
   return (
     <div className="flex h-screen w-screen bg-gray-50">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="flex flex-1 flex-col">
-        <Header user={user} setSidebarOpen={setSidebarOpen} />
+        <Header 
+          user={user} 
+          setSidebarOpen={setSidebarOpen} 
+          onShowProfile={() => setShowProfileModal(true)}
+        />
         <main className="flex-1 overflow-y-auto  p-2 overflow-x-hidden bg-gray-50">
           <Outlet />
         </main>
       </div>
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user}
+        onUpdateProfile={handleUpdateProfile}
+      />
     </div>
   );
 }
@@ -40,7 +64,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSid
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="h-full flex flex-col p-4">
-          <h1 className="text-xl font-bold text-indigo-600 mb-6">Lớp học</h1>
+          <h1 className="text-xl font-bold text-indigo-600 mb-6">PTIT</h1>
           <nav className="flex flex-col gap-2">
             {menu.map((item: any) => (
               <a
@@ -59,7 +83,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSid
   );
 }
 
-function Header({ user, setSidebarOpen }: { user: User; setSidebarOpen: (open: boolean) => void }) {
+function Header({ 
+  user, 
+  setSidebarOpen, 
+  onShowProfile 
+}: { 
+  user: User; 
+  setSidebarOpen: (open: boolean) => void;
+  onShowProfile: () => void;
+}) {
   const [openMenu, setOpenMenu] = useState(false);
 
   const handleLogout = async () => {
@@ -72,13 +104,13 @@ function Header({ user, setSidebarOpen }: { user: User; setSidebarOpen: (open: b
       <div className="flex items-center gap-3">
         <button
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-          // @ts-ignore
+          // @ts-expect-error - setSidebarOpen expects boolean but we're toggling
           onClick={() => setSidebarOpen((prev) => !prev)}
         >
           <Menu className="w-6 h-6 text-gray-700" />
         </button>
         <h2 className="text-lg md:text-xl font-semibold text-gray-800">
-          {user.role === "teacher" ? "Giáo viên" : "Học sinh"} Dashboard
+          Quản lý của {user.role === "teacher" ? "giáo viên" : user.role === "admin" ? 'hệ thống' : 'học sinh'}
         </h2>
       </div>
 
@@ -99,7 +131,10 @@ function Header({ user, setSidebarOpen }: { user: User; setSidebarOpen: (open: b
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border p-2 z-50">
             <button
               className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
-              onClick={() => alert("Thông tin user")}
+              onClick={() => {
+                onShowProfile();
+                setOpenMenu(false);
+              }}
             >
               <UserIcon className="w-4 h-4" /> Thông tin cá nhân
             </button>

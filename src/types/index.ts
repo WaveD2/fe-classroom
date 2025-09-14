@@ -1,6 +1,7 @@
 export enum ROLE {
     TEACHER = 'teacher',
-    STUDENT = 'student'
+    STUDENT = 'student',
+    ADMIN = 'admin'
 }
 
 export enum STATUS_CLASS {
@@ -14,12 +15,13 @@ export interface DateTime{
 }
 
 export interface User {
+    _id: string;
     id: string;
     name: string;
     email: string;
-    createAt: Date;
+    createdAt: Date;
     token: string;
-    role: ROLE.STUDENT | ROLE.TEACHER;
+    role: ROLE.STUDENT | ROLE.TEACHER | ROLE.ADMIN;
 }
 
 export interface SensorData {
@@ -118,7 +120,7 @@ export interface ClassI extends DateTime {
     teacher: User;
     status: STATUS_CLASS;
     uniqueCode: string;
-    countStudent: number;
+    studentCount: number;
 }
 
 export interface HistoryAttendance extends DateTime {
@@ -154,6 +156,25 @@ export interface QrHistoryI extends DateTime {
     sessionId: string;
     qrImage: string;
     createdByUserId: string;
+}
+
+export interface PaginationInfo {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    pagination: PaginationInfo;
+}
+
+export interface ClassFilter {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: STATUS_CLASS;
 }
 
 export type WelcomeMessage = BaseMessage<{ message: string }>;

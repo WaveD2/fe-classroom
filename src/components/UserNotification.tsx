@@ -23,7 +23,7 @@ const UserNotification: React.FC<Props> = ({ userId }) => {
             {user && (
                 <div>
                     <p>{user.email}</p>
-                    <p>{new Date(user.createAt).toLocaleString()}</p>
+                    <p>{new Date(user.createdAt).toLocaleString()}</p>
                 </div>
             )}
         </div>

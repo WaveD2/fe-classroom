@@ -1,7 +1,7 @@
 import { Eye } from "lucide-react";
 import Button from "./Button";
 import Card from "./Card";
-import { User } from "../types";
+import { ROLE, User } from "../types";
 
 const StudentList = ({ students, onStudentClick, showActions = false }: {
     students: User[];
@@ -9,8 +9,8 @@ const StudentList = ({ students, onStudentClick, showActions = false }: {
     showActions?: boolean;
 }) => (
     <div className="space-y-2">
-      {students.map(student => (
-        <Card key={student.id} className="p-4">
+      {students.filter(student=> student.role ===ROLE.STUDENT).map(student => (
+        <Card key={student._id || student.id} className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">

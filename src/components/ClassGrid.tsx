@@ -29,8 +29,6 @@ const ClassGrid = ({ classes, onClassClick, onUpdateClass, onDeleteClass }: Prop
   });
 
   const openEditModal = (cls: ClassI) => {
-    console.log("123(classItem)::", (cls));
-    
     setSelectedClass(cls);
     setForm({
       name: cls.name,
@@ -124,7 +122,7 @@ const ClassGrid = ({ classes, onClassClick, onUpdateClass, onDeleteClass }: Prop
             <div className="flex items-center justify-between text-sm text-gray-500">
               <span className="flex items-center">
                 <Users size={16} className="mr-1" />
-                {classItem.countStudent} thành viên
+                {classItem.studentCount || 0} thành viên
               </span>
               <span className="flex items-center mr-5">
                 <Calendar size={16} className="mr-1" />
