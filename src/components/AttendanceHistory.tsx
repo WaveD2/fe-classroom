@@ -10,8 +10,12 @@ const AttendanceHistory = ({
   attendance: HistoryAttendance[];
   title: string;
 }) => {
-  const [filterDate, setFilterDate] = useState<string>("");
-
+  const [filterDate, setFilterDate] = useState<string>(() => {
+    // format yyyy-MM-dd để tương thích input[type="date"]
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
+  
   const filteredData = filterDate
     ? attendance.filter(
         (item) =>
