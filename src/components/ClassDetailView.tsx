@@ -253,7 +253,6 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         isOpen={!!selectedStudent}
         onClose={() => setSelectedStudent(null)}
         student={selectedStudent}
-        attendance={[]}
       />
 
       <QRDetailModal 
