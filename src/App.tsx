@@ -6,6 +6,10 @@ import Auth from "./pages/Auth";
 import Error from "./pages/Error";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import StudentsPage from "./pages/Students";
+import TeachersPage from "./pages/Teachers";
+import StudentDetailPage from "./pages/StudentDetail";
+import TeacherDetailPage from "./pages/TeacherDetail";
 import Layout from "./components/Layout";
 import { User } from "./types";
 import { ToastContainer } from 'react-toastify';
@@ -43,11 +47,15 @@ function AppContent() {
           path="/"
           element={
             <ProtectedRoute user={user}>
-              <Layout user={user as User} />
+              <Layout />
             </ProtectedRoute>
           }
         >
           <Route index element={<Dashboard userRole={user?.role || ""} />} />
+          <Route path="student" element={<StudentsPage userRole={user?.role || ""} />} />
+          <Route path="student/:id" element={<StudentDetailPage />} />
+          <Route path="teacher" element={<TeachersPage userRole={user?.role || ""} />} />
+          <Route path="teacher/:id" element={<TeacherDetailPage />} />
         </Route>
 
         <Route path="*" element={<Error />} />

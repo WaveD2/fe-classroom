@@ -1,27 +1,32 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, NavLink } from "react-router-dom";
 import { Home, Menu, LogOut, User as UserIcon } from "lucide-react";
 import { useState } from "react";
-import {  User } from "../types";
+import {  ROLE, User } from "../types";
 import { logout, updateProfile } from "../api/auth";
 import ProfileModal from "./ProfileModal";
 
-export default function Layout({ user }: { user: User }) {
+export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-
+  const [user, setUser] = useState<any>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) as User : null;
+  });
+  
   const handleUpdateProfile = async (userData: Partial<User>) => {
     const response = await updateProfile(userData);
     if (response?.data) {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const updatedUser = { ...currentUser, ...response.data };
+      const updatedUser = { ...currentUser, ...response.data.data };
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(response.data.data)
     }
     return response;
   };
 
   return (
     <div className="flex h-screen w-screen bg-gray-50">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar user={user} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="flex flex-1 flex-col">
         <Header 
@@ -45,10 +50,16 @@ export default function Layout({ user }: { user: User }) {
   );
 }
 
-function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
+function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
   const menu = [
     { to: "/", label: "Lớp học", icon: <Home className="w-5 h-5" /> },
-  ].filter(Boolean);
+  ]
+  if(user.role === ROLE.ADMIN) {
+    menu.push(
+      { to: "/student", label: "Học sinh", icon: <UserIcon className="w-5 h-5" /> },
+      { to: "/teacher", label: "Giáo viên", icon: <UserIcon className="w-5 h-5" /> },
+    )
+  }
 
   return (
     <>
@@ -67,14 +78,21 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSid
           <h1 className="text-xl font-bold text-indigo-600 mb-6">PTIT</h1>
           <nav className="flex flex-col gap-2">
             {menu.map((item: any) => (
-              <a
+              <NavLink
                 key={item.to}
-                href={item.to}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-indigo-100 text-gray-700 transition-colors"
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-indigo-100 text-indigo-700"
+                      : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-700"
+                  }`
+                }
+                end
               >
                 {item.icon}
                 <span className="font-medium">{item.label}</span>
-              </a>
+              </NavLink>
             ))}
           </nav>
         </div>
