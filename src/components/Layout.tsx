@@ -58,6 +58,7 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
     menu.push(
       { to: "/student", label: "Học sinh", icon: <UserIcon className="w-5 h-5" /> },
       { to: "/teacher", label: "Giáo viên", icon: <UserIcon className="w-5 h-5" /> },
+      { to: "/class", label: "Quản lý lớp", icon: <Home className="w-5 h-5" /> },
     )
   }
 

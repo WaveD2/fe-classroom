@@ -19,6 +19,12 @@ export interface User {
     id: string;
     name: string;
     email: string;
+    phone?: string;
+    studentId?: string;
+    teacherId?: string;
+    dateOfBirth?: string;
+    subject?: string;
+    experience?: number;
     createdAt: Date;
     token: string;
     role: ROLE.STUDENT | ROLE.TEACHER | ROLE.ADMIN;

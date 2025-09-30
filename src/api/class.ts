@@ -58,3 +58,48 @@ export const getClassByAdmin = async (filter?: ClassFilter) => {
   const response = await api.get(`/class/by-admin?${params.toString()}`);
   return response.data;
 };
+
+// Admin class management APIs
+export const createClassByAdmin = async (classData: { 
+  name: string; 
+  description?: string; 
+  teacherId: string; 
+  code?: string 
+}) => {
+  const response = await api.post("/class/admin/create", classData);
+  return response.data;
+};
+
+export const addStudentToClass = async (classId: string, studentId: string) => {
+  const response = await api.post(`/class/admin/${classId}/student`, { studentId });
+  return response.data;
+};
+
+export const addMultipleStudentsToClass = async (classId: string, studentIds: string[]) => {
+  const response = await api.post(`/class/admin/${classId}/students`, { studentIds });
+  return response.data;
+};
+
+export const removeStudentFromClass = async (classId: string, studentId: string) => {
+  const response = await api.delete(`/class/admin/${classId}/student/${studentId}`);
+  return response.data;
+};
+
+export const addTeacherToClass = async (classId: string, teacherId: string) => {
+  const response = await api.post(`/class/admin/${classId}/teacher`, { teacherId });
+  return response.data;
+};
+
+export const getClassStudents = async (classId: string, params?: { 
+  page?: number; 
+  limit?: number; 
+  search?: string 
+}) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.search) queryParams.append('search', params.search);
+  
+  const response = await api.get(`/class/admin/${classId}/students?${queryParams.toString()}`);
+  return response.data;
+};

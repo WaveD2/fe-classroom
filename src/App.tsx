@@ -10,6 +10,7 @@ import StudentsPage from "./pages/Students";
 import TeachersPage from "./pages/Teachers";
 import StudentDetailPage from "./pages/StudentDetail";
 import TeacherDetailPage from "./pages/TeacherDetail";
+import ClassManagement from "./pages/ClassManagement";
 import Layout from "./components/Layout";
 import { User } from "./types";
 import { ToastContainer } from 'react-toastify';
@@ -56,6 +57,7 @@ function AppContent() {
           <Route path="student/:id" element={<StudentDetailPage />} />
           <Route path="teacher" element={<TeachersPage userRole={user?.role || ""} />} />
           <Route path="teacher/:id" element={<TeacherDetailPage />} />
+          <Route path="class" element={<ClassManagement userRole={user?.role || ""} />} />
         </Route>
 
         <Route path="*" element={<Error />} />
