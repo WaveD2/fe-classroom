@@ -138,6 +138,12 @@ export interface HistoryAttendance extends DateTime {
     id:string
 }
 
+export interface StudentWithAttendance extends User {
+    attendanceCount: number;
+    attendanceRate: number;
+    attendanceTimes: string[];
+}
+
 export interface QrI extends DateTime {
     classId: string;
     userId?: string;

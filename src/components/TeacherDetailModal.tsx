@@ -6,12 +6,24 @@ const TeacherDetailModal = ({ isOpen, onClose, teacher }: {
     onClose: () => void;
     teacher: any;
 }) => {
-  const attendanceFromTeacher = Array.isArray(teacher?.attendanceTimes)
-    ? teacher.attendanceTimes.map((t: string) => ({
-        createdAt: t,
-        user: { email: teacher?.email }
-      }))
-    : [];
+  const attendanceFromTeacher = teacher ? [{
+    _id: teacher._id || teacher.id,
+    id: teacher.id || teacher._id,
+    name: teacher.name,
+    email: teacher.email,
+    phone: teacher.phone,
+    studentId: teacher.studentId,
+    teacherId: teacher.teacherId,
+    dateOfBirth: teacher.dateOfBirth,
+    subject: teacher.subject,
+    experience: teacher.experience,
+    createdAt: teacher.createdAt || new Date(),
+    token: teacher.token || '',
+    role: teacher.role,
+    attendanceCount: teacher.attendanceCount || 0,
+    attendanceRate: teacher.attendanceRate || 0,
+    attendanceTimes: teacher.attendanceTimes || []
+  }] : [];
 
   if (!isOpen) return null;
 
@@ -218,7 +230,7 @@ const TeacherDetailModal = ({ isOpen, onClose, teacher }: {
                   <p className="text-gray-600 mt-1">Chi tiết các lần điểm danh của giáo viên</p>
                 </div>
                 <div className="p-6">
-                  <AttendanceHistory attendance={attendanceFromTeacher as any} title="" />
+                  <AttendanceHistory students={attendanceFromTeacher} title="" />
                 </div>
               </div>
             </div>

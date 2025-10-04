@@ -6,12 +6,24 @@ const StudentDetailModal = ({ isOpen, onClose, student }: {
     onClose: () => void;
     student: any;
 }) => {
-  const attendanceFromStudent = Array.isArray(student?.attendanceTimes)
-    ? student.attendanceTimes.map((t: string) => ({
-        createdAt: t,
-        user: { email: student?.email }
-      }))
-    : [];
+  const attendanceFromStudent = student ? [{
+    _id: student._id || student.id,
+    id: student.id || student._id,
+    name: student.name,
+    email: student.email,
+    phone: student.phone,
+    studentId: student.studentId,
+    teacherId: student.teacherId,
+    dateOfBirth: student.dateOfBirth,
+    subject: student.subject,
+    experience: student.experience,
+    createdAt: student.createdAt || new Date(),
+    token: student.token || '',
+    role: student.role,
+    attendanceCount: student.attendanceCount || 0,
+    attendanceRate: student.attendanceRate || 0,
+    attendanceTimes: student.attendanceTimes || []
+  }] : [];
 
   if (!isOpen) return null;
 
@@ -157,7 +169,7 @@ const StudentDetailModal = ({ isOpen, onClose, student }: {
                   <p className="text-gray-600 mt-1">Chi tiết các lần điểm danh của học sinh</p>
                 </div>
                 <div className="p-6">
-                  <AttendanceHistory attendance={attendanceFromStudent as any} title="" />
+                  <AttendanceHistory students={attendanceFromStudent} title="" />
                 </div>
               </div>
             </div>

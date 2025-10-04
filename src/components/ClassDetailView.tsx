@@ -8,7 +8,7 @@ import QRHistoryList from './QRHistoryList';
 import StudentDetailModal from './StudentDetailModal';
 import QRDetailModal from './QRDetailModal';
 import { ROLE, STATUS_CLASS } from '../types';
-import type { ClassI, User, HistoryAttendance, QrHistoryI } from '../types'; 
+import type { ClassI, User, QrHistoryI, StudentWithAttendance } from '../types'; 
 import { getAllQR } from '../api/qr';
 import { exportAttendanceClass, getClassDetail } from '../api/class';
 
@@ -19,8 +19,7 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
 }) => {
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
   const [showQRGenerator, setShowQRGenerator] = useState(false);
-  const [listStudent, setListStudent] = useState<User[]>([]);
-  const [historyAttendance, setHistoryAttendance] = useState<HistoryAttendance[]>([]);
+  const [listStudent, setListStudent] = useState<StudentWithAttendance[]>([]);
   const [qrHistory, setQrHistory] = useState<QrHistoryI[]>([]);
   const [activeTab, setActiveTab] = useState("students");
   const [selectedQR, setSelectedQR] = useState<any | null>(null);
@@ -34,10 +33,12 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
       try {
         const response = await getClassDetail(classData._id || classData.id);
         if (response?.data) {
-          setListStudent(response.data.students);
-          setHistoryAttendance(response.data.historyJoin);
+          // Filter out students from the students array (remove teachers)
+          const students = response.data.students?.filter((item: StudentWithAttendance) => item.role === ROLE.STUDENT) || [];
+          setListStudent(students);
+          
           // Find teacher for admin view
-          const teacherData = response.data.students?.find((item: User) => item.role === ROLE.TEACHER);
+          const teacherData = response.data.students?.find((item: StudentWithAttendance) => item.role === ROLE.TEACHER);
           if (teacherData) {
             setTeacher(teacherData);
           }
@@ -231,7 +232,7 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
             )}
             {activeTab === "attendance" && (
               <AttendanceHistory
-                attendance={historyAttendance}
+                students={listStudent}
                 title={userRole === ROLE.TEACHER ? "Lịch sử điểm danh lớp" : "Điểm danh của tôi"}
               />
             )}
