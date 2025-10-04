@@ -103,3 +103,28 @@ export const getClassStudents = async (classId: string, params?: {
   const response = await api.get(`/class/admin/${classId}/students?${queryParams.toString()}`);
   return response.data;
 };
+
+// Manual attendance APIs
+export const manualAttendanceTeacher = async (classId: string, attendanceData: any) => {
+  try {
+    const response = await api.post(`/class/${classId}/teacher/manual-attendance`, attendanceData);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Có lỗi xảy ra khi điểm danh thủ công");
+    }
+    throw error;
+  }
+};
+
+export const manualAttendanceAdmin = async (classId: string, attendanceData: any) => {
+  try {
+    const response = await api.post(`/class/admin/${classId}/manual-attendance`, attendanceData);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Có lỗi xảy ra khi điểm danh thủ công");
+    }
+    throw error;
+  }
+};

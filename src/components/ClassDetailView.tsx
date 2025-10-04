@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import Button from './Button';
-import { QrCode, Users, Clock, History, Download, ArrowLeft, Calendar, BookOpen, GraduationCap } from 'lucide-react'; 
+import { QrCode, Users, Clock, History, Download, ArrowLeft, Calendar, BookOpen, GraduationCap, UserCheck } from 'lucide-react'; 
 import QRGenerator from './QRGenerator';
 import StudentList from './StudentList';
 import AttendanceHistory from './AttendanceHistory';
 import QRHistoryList from './QRHistoryList';
 import StudentDetailModal from './StudentDetailModal';
 import QRDetailModal from './QRDetailModal';
+import ManualAttendanceModal from './ManualAttendanceModal';
 import { ROLE, STATUS_CLASS } from '../types';
 import type { ClassI, User, QrHistoryI, StudentWithAttendance } from '../types'; 
 import { getAllQR } from '../api/qr';
@@ -19,12 +20,35 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
 }) => {
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
   const [showQRGenerator, setShowQRGenerator] = useState(false);
+  const [showManualAttendance, setShowManualAttendance] = useState(false);
   const [listStudent, setListStudent] = useState<StudentWithAttendance[]>([]);
   const [qrHistory, setQrHistory] = useState<QrHistoryI[]>([]);
   const [activeTab, setActiveTab] = useState("students");
   const [selectedQR, setSelectedQR] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [teacher, setTeacher] = useState<User | null>(null);
+
+  const refreshClassData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getClassDetail(classData._id || classData.id);
+      if (response?.data) {
+        // Filter out students from the students array (remove teachers)
+        const students = response.data.students?.filter((item: StudentWithAttendance) => item.role === ROLE.STUDENT) || [];
+        setListStudent(students);
+        
+        // Find teacher for admin view
+        const teacherData = response.data.students?.find((item: StudentWithAttendance) => item.role === ROLE.TEACHER);
+        if (teacherData) {
+          setTeacher(teacherData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
 
@@ -149,35 +173,47 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
               )}
 
               {/* Action Buttons - Mobile Optimized */}
-              {userRole === ROLE.TEACHER && (
+              {(userRole === ROLE.TEACHER || userRole === ROLE.ADMIN) && (
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <Button 
-                    onClick={async () => {
-                      try {
-                        const data: any = await exportAttendanceClass(classData._id || classData.id);
-                        const blob = new Blob([data], { type: "application/octet-stream" });
-                        const blobUrl = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = blobUrl;
-                        a.download = `${classData.name}_${new Date().toISOString().split('T')[0]}.xlsx`;
-                        a.click();
-                        URL.revokeObjectURL(blobUrl);
-                      } catch (error) {
-                        console.error('Export error:', error);
-                      }
-                    }} 
-                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+                    onClick={() => setShowManualAttendance(true)} 
+                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
                   >
-                    <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="font-medium">Xuất dữ liệu</span>
+                    <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="font-medium">Điểm danh thủ công</span>
                   </Button>
-                  <Button 
-                    onClick={() => setShowQRGenerator(true)} 
-                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
-                  >
-                    <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="font-medium">Tạo mã QR</span>
-                  </Button>
+                  
+                  {userRole === ROLE.TEACHER && (
+                    <>
+                      <Button 
+                        onClick={async () => {
+                          try {
+                            const data: any = await exportAttendanceClass(classData._id || classData.id);
+                            const blob = new Blob([data], { type: "application/octet-stream" });
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = blobUrl;
+                            a.download = `${classData.name}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                            a.click();
+                            URL.revokeObjectURL(blobUrl);
+                          } catch (error) {
+                            console.error('Export error:', error);
+                          }
+                        }} 
+                        className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+                      >
+                        <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="font-medium">Xuất dữ liệu</span>
+                      </Button>
+                      <Button 
+                        onClick={() => setShowQRGenerator(true)} 
+                        className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+                      >
+                        <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="font-medium">Tạo mã QR</span>
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -260,6 +296,15 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         isOpen={!!selectedQR}
         onClose={() => setSelectedQR(null)}
         qr={selectedQR}
+      />
+
+      <ManualAttendanceModal
+        isOpen={showManualAttendance}
+        onClose={() => setShowManualAttendance(false)}
+        classId={classData._id || classData.id}
+        students={listStudent}
+        userRole={userRole}
+        onSuccess={refreshClassData}
       />
     </div>
   );

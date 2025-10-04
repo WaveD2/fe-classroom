@@ -144,6 +144,16 @@ export interface StudentWithAttendance extends User {
     attendanceTimes: string[];
 }
 
+export interface ManualAttendanceData {
+    studentId: string;
+    timeAttendance: string;
+    type: 'active' | 'inactive';
+}
+
+export interface ManualAttendanceRequest {
+    attendanceData: ManualAttendanceData[];
+}
+
 export interface QrI extends DateTime {
     classId: string;
     userId?: string;
