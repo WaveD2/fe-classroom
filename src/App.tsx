@@ -11,7 +11,9 @@ import TeachersPage from "./pages/Teachers";
 import StudentDetailPage from "./pages/StudentDetail";
 import TeacherDetailPage from "./pages/TeacherDetail";
 import ClassManagement from "./pages/ClassManagement";
+import GradeManagement from "./pages/GradeManagement";
 import Layout from "./components/Layout";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { User } from "./types";
 import { ToastContainer } from 'react-toastify';
 
@@ -58,6 +60,7 @@ function AppContent() {
           <Route path="teacher" element={<TeachersPage userRole={user?.role || ""} />} />
           <Route path="teacher/:id" element={<TeacherDetailPage />} />
           <Route path="class" element={<ClassManagement userRole={user?.role || ""} />} />
+          <Route path="grades" element={<GradeManagement />} />
         </Route>
 
         <Route path="*" element={<Error />} />
@@ -68,9 +71,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-      <ToastContainer />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppContent />
+        <ToastContainer />
+      </Router>
+    </ErrorBoundary>
   );
 }

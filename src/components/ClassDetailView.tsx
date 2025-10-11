@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Button from './Button';
-import { QrCode, Users, Clock, History, Download, ArrowLeft, Calendar, BookOpen, GraduationCap, UserCheck } from 'lucide-react'; 
+import { QrCode, Users, Clock, History, Download, ArrowLeft, Calendar, BookOpen, GraduationCap, UserCheck, Award, BarChart3 } from 'lucide-react'; 
 import QRGenerator from './QRGenerator';
 import StudentList from './StudentList';
 import AttendanceHistory from './AttendanceHistory';
@@ -8,10 +8,17 @@ import QRHistoryList from './QRHistoryList';
 import StudentDetailModal from './StudentDetailModal';
 import QRDetailModal from './QRDetailModal';
 import ManualAttendanceModal from './ManualAttendanceModal';
+import GradeList from './GradeList';
+import GradeStatistics from './GradeStatistics';
+import GradeModal from './GradeModal';
+import BulkGradeModal from './BulkGradeModal';
+import GradeFilters from './GradeFilters';
+import LoadingState from './LoadingState';
 import { ROLE, STATUS_CLASS } from '../types';
-import type { ClassI, User, QrHistoryI, StudentWithAttendance } from '../types'; 
+import type { ClassI, User, QrHistoryI, StudentWithAttendance, Grade, GradeFilter } from '../types'; 
 import { getAllQR } from '../api/qr';
 import { exportAttendanceClass, getClassDetail } from '../api/class';
+import { useGrades, useClassGradeStatistics } from '../hook/useGrade';
 
 const ClassDetailView = ({ classData, userRole, onBack }: {
   classData: ClassI;
@@ -27,6 +34,29 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
   const [selectedQR, setSelectedQR] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [teacher, setTeacher] = useState<User | null>(null);
+  
+  // Grade Management states
+  const [selectedGrade, setSelectedGrade] = useState<Grade | undefined>(undefined);
+  const [showGradeModal, setShowGradeModal] = useState(false);
+  const [showBulkGradeModal, setShowBulkGradeModal] = useState(false);
+  const [gradeFilters, setGradeFilters] = useState<GradeFilter>({});
+  // const [showGradeStatistics, setShowGradeStatistics] = useState(false);
+
+  // Grade Management hooks
+  const { 
+    grades, 
+    loading: gradesLoading, 
+    // createGrade, 
+    // updateGrade, 
+    deleteGrade, 
+    fetchGrades 
+  } = useGrades(classData._id || classData.id, gradeFilters);
+  
+  const { 
+    statistics, 
+    loading: statisticsLoading, 
+    fetchStatistics 
+  } = useClassGradeStatistics(classData._id || classData.id);
 
   const refreshClassData = async () => {
     setIsLoading(true);
@@ -98,7 +128,12 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
       case 'qr':
         if (userRole === ROLE.TEACHER) fetchQrHistory();
         break;
-
+      case 'grades':
+        fetchGrades();
+        break;
+      case 'statistics':
+        fetchStatistics();
+        break;
       default:
         break;
     }
@@ -183,6 +218,22 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
                     <span className="font-medium">Điểm danh thủ công</span>
                   </Button>
                   
+                  <Button 
+                    onClick={() => setShowGradeModal(true)} 
+                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+                  >
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="font-medium">Tạo điểm</span>
+                  </Button>
+
+                  <Button 
+                    onClick={() => setShowBulkGradeModal(true)} 
+                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+                  >
+                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="font-medium">Tạo điểm hàng loạt</span>
+                  </Button>
+                  
                   {userRole === ROLE.TEACHER && (
                     <>
                       <Button 
@@ -222,18 +273,20 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white border-b">
+      <div className="bg-white">
         <div className="w-full px-3 sm:px-4 lg:px-8">
           <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
             {[
               { key: "students", label: "Học sinh", icon: Users, shortLabel: "HS" },
               { key: "attendance", label: "Điểm danh", icon: Clock, shortLabel: "DD" },
+              { key: "grades", label: "Điểm số", icon: Award, shortLabel: "Điểm" },
+              { key: "statistics", label: "Thống kê", icon: BarChart3, shortLabel: "TK" },
               ...(userRole === ROLE.TEACHER ? [{ key: "qr", label: "Lịch sử QR", icon: History, shortLabel: "QR" }] : []),
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1 sm:gap-2 px-2 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex-shrink-0 ${
+                className={`flex items-center gap-1 sm:gap-2 px-2 py-3 sm:py-4 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
                   activeTab === tab.key 
                     ? "border-blue-500 text-blue-600" 
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -272,6 +325,40 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
                 title={userRole === ROLE.TEACHER ? "Lịch sử điểm danh lớp" : "Điểm danh của tôi"}
               />
             )}
+            {activeTab === "grades" && (
+              <div className="space-y-6">
+                <GradeFilters
+                  onFilterChange={setGradeFilters}
+                  onReset={() => setGradeFilters({})}
+                  loading={gradesLoading}
+                />
+                {gradesLoading ? (
+                  <LoadingState type="grades" />
+                ) : (
+                  <GradeList
+                    grades={grades}
+                    loading={false}
+                    onEdit={(grade) => {
+                      setSelectedGrade(grade);
+                      setShowGradeModal(true);
+                    }}
+                    onDelete={deleteGrade}
+                    onView={(grade) => {
+                      setSelectedGrade(grade);
+                      setShowGradeModal(true);
+                    }}
+                    showActions={userRole === ROLE.TEACHER || userRole === ROLE.ADMIN}
+                    showStudent={true}
+                  />
+                )}
+              </div>
+            )}
+            {activeTab === "statistics" && (
+              <GradeStatistics
+                statistics={statistics}
+                loading={statisticsLoading}
+              />
+            )}
             {activeTab === "qr" && (
               <QRHistoryList qrHistory={qrHistory} onSelect={setSelectedQR} />
             )}
@@ -285,7 +372,7 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         onClose={() => setShowQRGenerator(false)}
         classId={classData._id || classData.id}
       />
-  
+   
       <StudentDetailModal
         isOpen={!!selectedStudent}
         onClose={() => setSelectedStudent(null)}
@@ -305,6 +392,33 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         students={listStudent}
         userRole={userRole}
         onSuccess={refreshClassData}
+      />
+
+      <GradeModal
+        isOpen={showGradeModal}
+        onClose={() => {
+          setShowGradeModal(false);
+          setSelectedGrade(undefined);
+        }}
+        classId={classData._id || classData.id}
+        students={listStudent}
+        grade={selectedGrade}
+        onSuccess={() => {
+          fetchGrades();
+          refreshClassData();
+        }}
+        onDelete={deleteGrade}
+      />
+
+      <BulkGradeModal
+        isOpen={showBulkGradeModal}
+        onClose={() => setShowBulkGradeModal(false)}
+        classId={classData._id || classData.id}
+        students={listStudent}
+        onSuccess={() => {
+          fetchGrades();
+          refreshClassData();
+        }}
       />
     </div>
   );

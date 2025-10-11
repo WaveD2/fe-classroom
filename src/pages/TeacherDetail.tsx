@@ -2,6 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { User } from "../types";
 import { getTeacherById } from "../api/user";
+import LazyLoad from "../components/LazyLoad";
+import { 
+  ArrowLeft, 
+  GraduationCap, 
+  Mail, 
+  Calendar, 
+  Users, 
+  BookOpen, 
+  BarChart3,
+  Clock,
+  UserCheck
+} from "lucide-react";
 
 export default function TeacherDetailPage() {
   const { id } = useParams();
@@ -31,74 +43,167 @@ export default function TeacherDetailPage() {
   }, [id]);
 
   return (
-    <div className="flex flex-col h-full p-4 sm:p-6 lg:p-8">
-     <button
-      onClick={() => navigate(-1)}
-      className="inline-flex items-center mb-2 w-min gap-1 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition"
-    >
-      <span className="whitespace-nowrap">← Quay lại</span>
-    </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 lg:p-8">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 text-gray-700 hover:text-blue-600 transition-all duration-200"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Quay lại</span>
+      </button>
 
       {loading ? (
-        <div className="flex items-center justify-center h-40">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
+        <LazyLoad delay={500}>
+          <div></div>
+        </LazyLoad>
       ) : user ? (
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border p-6 shadow-sm">
-            <div className="flex items-start gap-4">
-              <img
-                src={`https://ui-avatars.com/api/?name=${user.name?.replace(" ", "+")}&background=random&size=128`}
-                alt="avatar"
-                className="w-24 h-24 rounded-full border"
-              />
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold mb-1 break-words">{user.name}</h1>
-                <p className="text-gray-600 break-all">{user.email}</p>
-                <div className="mt-3 text-sm text-gray-700">ID: {user.id || (user as any)._id}</div>
+        <LazyLoad delay={300}>
+          <div className="space-y-8">
+          {/* Teacher Profile */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <GraduationCap className="w-10 h-10" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-2xl sm:text-3xl font-bold mb-1">{user.name}</h1>
+                  <p className="text-blue-100 text-lg">Giáo viên</p>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-blue-200">
+                    <span className="flex items-center gap-1">
+                      <Mail className="w-4 h-4" />
+                      {user.email}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      ID: {user.id || (user as any)._id}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Statistics */}
           {summary && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border p-4 text-center">
-                <div className="text-2xl font-bold">{summary.totalClasses}</div>
-                <div className="text-sm text-gray-600">Tổng số lớp</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <BookOpen className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-gray-900">{summary.totalClasses}</p>
+                    <p className="text-sm text-gray-600">Tổng số lớp</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white rounded-xl border p-4 text-center">
-                <div className="text-2xl font-bold">{summary.totalStudents}</div>
-                <div className="text-sm text-gray-600">Tổng số học sinh</div>
+              
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-100 rounded-xl">
+                    <Users className="w-8 h-8 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-gray-900">{summary.totalStudents}</p>
+                    <p className="text-sm text-gray-600">Tổng số học sinh</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-100 rounded-xl">
+                    <BarChart3 className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-gray-900">{classes.length}</p>
+                    <p className="text-sm text-gray-600">Lớp đang dạy</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border p-4">
-            <h2 className="text-lg font-semibold mb-3">Lớp phụ trách</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-600">
-                    <th className="p-2">Lớp</th>
-                    <th className="p-2">Số học sinh</th>
-                    <th className="p-2">Số buổi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classes.map((c) => (
-                    <tr key={c.classId} className="border-t">
-                      <td className="p-2">{c.className}</td>
-                      <td className="p-2">{c.studentCount}</td>
-                      <td className="p-2">{c.sessions}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Classes Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Lớp phụ trách</h2>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {classes.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="text-left text-gray-600 border-b border-gray-200">
+                        <th className="pb-3 font-medium">Tên lớp</th>
+                        <th className="pb-3 font-medium">Số học sinh</th>
+                        <th className="pb-3 font-medium">Số buổi học</th>
+                        <th className="pb-3 font-medium">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {classes.map((c, index) => (
+                        <tr key={c.classId} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <span className="text-sm font-medium text-blue-600">{index + 1}</span>
+                              </div>
+                              <span className="font-medium text-gray-900">{c.className}</span>
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-700">{c.studentCount}</span>
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-700">{c.sessions}</span>
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <UserCheck className="w-3 h-3 mr-1" />
+                              Đang hoạt động
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có lớp nào</h3>
+                  <p className="text-gray-500">Giáo viên này chưa được phân công lớp nào</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
+        </LazyLoad>
       ) : (
-        <div className="text-center text-gray-500">Không tìm thấy người dùng</div>
+        <div className="text-center py-16">
+          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <GraduationCap className="w-12 h-12 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy giáo viên</h3>
+          <p className="text-gray-500">Thông tin giáo viên không tồn tại hoặc đã bị xóa</p>
+        </div>
       )}
     </div>
   );

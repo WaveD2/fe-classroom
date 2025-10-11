@@ -1,183 +1,133 @@
-import { X, User, Mail, Phone, Calendar, GraduationCap, Clock, Activity } from 'lucide-react';
-import AttendanceHistory from "./AttendanceHistory";
+import { memo } from 'react';
+import { 
+  X, 
+  User, 
+  Mail, 
+  Clock, 
+  TrendingUp
+} from 'lucide-react';
+import { StudentWithAttendance } from '../types';
 
-const StudentDetailModal = ({ isOpen, onClose, student }: {
-    isOpen: boolean;
-    onClose: () => void;
-    student: any;
-}) => {
-  const attendanceFromStudent = student ? [{
-    _id: student._id || student.id,
-    id: student.id || student._id,
-    name: student.name,
-    email: student.email,
-    phone: student.phone,
-    studentId: student.studentId,
-    teacherId: student.teacherId,
-    dateOfBirth: student.dateOfBirth,
-    subject: student.subject,
-    experience: student.experience,
-    createdAt: student.createdAt || new Date(),
-    token: student.token || '',
-    role: student.role,
-    attendanceCount: student.attendanceCount || 0,
-    attendanceRate: student.attendanceRate || 0,
-    attendanceTimes: student.attendanceTimes || []
-  }] : [];
+interface StudentDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  student: StudentWithAttendance | null;
+}
 
-  if (!isOpen) return null;
+const StudentDetailModal = memo(({ isOpen, onClose, student }: StudentDetailModalProps) => {
+  if (!isOpen || !student) return null;
+
+  const attendanceRate = student.attendanceRate || 0;
+  const attendanceCount = student.attendanceCount || 0;
+
+  const handleBackdropClick = () => {
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl animate-fadeIn max-h-[90vh] overflow-hidden">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-4 text-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <User className="w-8 h-8" />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <User className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">Chi tiết học sinh</h2>
-                <p className="text-blue-100">Thông tin và lịch sử điểm danh</p>
+                <h2 className="text-xl font-bold">{student.name}</h2>
+                <p className="text-blue-100 text-sm">Thông tin học sinh</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
-          {student && (
-            <div className="space-y-6">
-              {/* Profile Section */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                    <div className="relative">
-                      <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(student?.name || "S")}&background=random&size=120`}
-                        alt="avatar"
-                        className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-lg"
-                      />
-                      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="flex-1 text-gray-900">
-                      <h3 className="text-2xl sm:text-3xl font-bold mb-2">{student.name}</h3>
-                      <p className="text-gray-600 text-lg mb-1">{student.email}</p>
-                      {student.phone && (
-                        <p className="text-gray-500 text-sm">{student.phone}</p>
-                      )}
-                      <div className="mt-4 flex items-center gap-2">
-                        <GraduationCap className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm font-medium text-gray-700">Học sinh</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Student Info Cards */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <User className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Mã học sinh</p>
-                        <p className="font-semibold text-gray-900">{student.studentId || student.id || student._id} </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl w-min">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Mail className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div >
-                        <p className="text-sm text-gray-600 ">Email</p>
-                        <p className="font-semibold text-gray-900 truncate">{student.email}</p>
-                      </div>
-                    </div>
-                    
-                    {student.phone && (
-                      <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl">
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                          <Phone className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Số điện thoại</p>
-                          <p className="font-semibold text-gray-900">{student.phone}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {student.dateOfBirth && (
-                      <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-xl">
-                        <div className="p-2 bg-orange-100 rounded-lg">
-                          <Calendar className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Ngày sinh</p>
-                          <p className="font-semibold text-gray-900">{new Date(student.dateOfBirth).toLocaleDateString('vi-VN')}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Statistics Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-blue-100 rounded-xl">
-                      <Clock className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-bold text-gray-900">{student.attendanceCount ?? 0}</p>
-                      <p className="text-sm text-gray-600">Lần điểm danh</p>
-                    </div>
+        {/* Content */}
+        <div className="p-6">
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin cơ bản</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">Họ và tên</p>
+                    <p className="font-semibold text-gray-900">{student.name}</p>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-green-100 rounded-xl">
-                      <Activity className="w-6 h-6 text-green-600" />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-bold text-gray-900">{student.attendanceRate ?? 0}%</p>
-                      <p className="text-sm text-gray-600">Tỷ lệ điểm danh</p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-semibold text-gray-900">{student.email}</p>
                   </div>
-                </div>
-              </div>
-
-              {/* Attendance History */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                    <Clock className="w-6 h-6 text-blue-600" />
-                    Lịch sử điểm danh
-                  </h2>
-                  <p className="text-gray-600 mt-1">Chi tiết các lần điểm danh của học sinh</p>
-                </div>
-                <div className="p-6">
-                  <AttendanceHistory students={attendanceFromStudent} title="" />
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Attendance Stats */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Thống kê điểm danh</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-3 rounded-lg text-center">
+                  <Clock className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                  <p className="text-xl font-bold text-blue-900">{attendanceCount}</p>
+                  <p className="text-sm text-blue-600">Lần điểm danh</p>
+                </div>
+                
+                <div className="bg-white p-3 rounded-lg text-center">
+                  <TrendingUp className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                  <p className="text-xl font-bold text-green-900">{attendanceRate}%</p>
+                  <p className="text-sm text-green-600">Tỷ lệ tham gia</p>
+                </div>
+              </div>
+
+              <div className="mt-4 bg-white p-3 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Tiến độ điểm danh</span>
+                  <span className="font-bold text-blue-600">{attendanceRate}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      attendanceRate >= 80 ? 'bg-green-500' : 
+                      attendanceRate >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${attendanceRate}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 flex items-center justify-end border-t">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+          >
+            Đóng
+          </button>
         </div>
       </div>
     </div>
   );
-};
+});
 
-export default StudentDetailModal;  
+StudentDetailModal.displayName = 'StudentDetailModal';
+
+export default StudentDetailModal;

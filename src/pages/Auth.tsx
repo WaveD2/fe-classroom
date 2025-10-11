@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "../types";
+import anhnen from "../assets/anhnen.webp";
 
 type AuthForm = {
   email: string;
@@ -105,8 +106,16 @@ const Auth : React.FC<{setUser: any}>  = ({ setUser }: { setUser: (u: User) => v
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-gray-100 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
+    <div 
+      className="min-h-screen flex items-center justify-center px-4 relative"
+      style={{
+        backgroundImage: `url(${anhnen})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl relative z-10">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           {isRegister ? "Đăng Ký" : "Đăng Nhập"}
         </h1>

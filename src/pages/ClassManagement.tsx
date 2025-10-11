@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Users, Settings, Trash2, BookOpen, GraduationCap, Grid, List } from 'lucide-react';
+import { 
+  Plus, 
+  Users, 
+  Trash2, 
+  BookOpen, 
+  GraduationCap, 
+  Grid, 
+  List,
+  Calendar,
+  Shield,
+  Activity
+} from 'lucide-react';
 import { ClassI, ROLE, PaginationInfo } from '../types';
 import { getClassByAdmin, deleteClass, createClassByAdmin } from '../api/class';
 import SearchBar from '../components/Search';
@@ -9,6 +20,7 @@ import ClassMembersModal from '../components/ClassMembersModal';
 import StudentDetailModal from '../components/StudentDetailModal';
 import TeacherDetailModal from '../components/TeacherDetailModal';
 import { showSuccess, showError } from '../components/Toast';
+import { ListSkeleton, StatsSkeleton } from '../components/LoadingSkeleton';
 
 const ClassManagement: React.FC<{ userRole: string }> = ({ userRole }) => {
   const [classes, setClasses] = useState<ClassI[]>([]);
@@ -91,8 +103,11 @@ const ClassManagement: React.FC<{ userRole: string }> = ({ userRole }) => {
 
   if (userRole !== ROLE.ADMIN) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-red-600" />
+          </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Không có quyền truy cập</h2>
           <p className="text-gray-600">Chỉ quản trị viên mới có thể truy cập trang này</p>
         </div>
@@ -101,19 +116,21 @@ const ClassManagement: React.FC<{ userRole: string }> = ({ userRole }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Section - Sticky */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             {/* Title Section */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <BookOpen className="w-6 h-6 text-blue-600" />
+                <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+                  <BookOpen className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Quản lý lớp học</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Quản lý lớp học
+                  </h1>
                   <p className="text-gray-600 text-sm sm:text-base">Tạo và quản lý các lớp học trong hệ thống</p>
                 </div>
               </div>
@@ -123,7 +140,7 @@ const ClassManagement: React.FC<{ userRole: string }> = ({ userRole }) => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
               >
                 <Plus className="w-5 h-5" />
                 Tạo lớp mới
@@ -132,129 +149,209 @@ const ClassManagement: React.FC<{ userRole: string }> = ({ userRole }) => {
           </div>
 
           {/* Search and View Controls */}
-          <div className="mt-4 sm:mt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <SearchBar
-                  value={search}
-                  onChange={setSearch}
-                  placeholder="Tìm kiếm lớp học theo tên, mã lớp hoặc giáo viên..."
-                  delay={500}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-blue-100 text-blue-600' 
-                      : 'text-gray-500 hover:bg-gray-100'
-                  }`}
-                  title="Xem dạng lưới"
-                >
-                  <Grid className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-blue-100 text-blue-600' 
-                      : 'text-gray-500 hover:bg-gray-100'
-                  }`}
-                  title="Xem dạng danh sách"
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                placeholder="Tìm kiếm lớp học theo tên, mã lớp hoặc giáo viên..."
+                delay={500}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  viewMode === 'grid' 
+                    ? 'bg-purple-100 text-purple-600 shadow-sm' 
+                    : 'text-gray-500 hover:bg-gray-100'
+                }`}
+                title="Xem dạng lưới"
+              >
+                <Grid className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  viewMode === 'list' 
+                    ? 'bg-purple-100 text-purple-600 shadow-sm' 
+                    : 'text-gray-500 hover:bg-gray-100'
+                }`}
+                title="Xem dạng danh sách"
+              >
+                <List className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content - Responsive Layout */}
+      {/* Stats Section */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="text-gray-600">Đang tải danh sách lớp học...</p>
+          <StatsSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+                  <p className="text-sm text-gray-600">Tổng lớp học</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Activity className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {classes.filter(c => c.status === 'open').length}
+                  </p>
+                  <p className="text-sm text-gray-600">Đang hoạt động</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {classes.reduce((sum, c) => sum + (c.studentCount || 0), 0)}
+                  </p>
+                  <p className="text-sm text-gray-600">Tổng học sinh</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <GraduationCap className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {new Set(classes.filter(c => c.teacher).map(c => c.teacher?.id)).size}
+                  </p>
+                  <p className="text-sm text-gray-600">Giáo viên</p>
+                </div>
+              </div>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 sm:px-6 lg:px-8 pb-6">
+        {loading ? (
+          <ListSkeleton />
         ) : (
           <>
             {/* Classes Display */}
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {classes.map((classItem) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {classes.map((classItem, index) => (
                   <div
                     key={classItem.id || classItem._id}
-                    className="bg-white rounded-xl border shadow-sm hover:shadow-lg transition-all duration-200 p-6 group"
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-100 hover:border-purple-200"
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    {/* Class Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                          {classItem.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1 truncate">
-                          Mã: <span className="font-mono font-medium">{classItem.uniqueCode}</span>
-                        </p>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                        classItem.status === 'open' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {classItem.status === 'open' ? 'Đang học' : 'Đã đóng'}
-                      </div>
-                    </div>
-
-                    {/* Class Info */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Users className="w-4 h-4" />
-                        <span>{classItem.studentCount || 0} học sinh</span>
-                      </div>
-                      {classItem.teacher && (
-                        <div 
-                          className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-purple-600 transition-colors"
-                          onClick={() => {
-                            setSelectedTeacher(classItem.teacher);
-                            setShowTeacherDetail(true);
-                          }}
-                        >
-                          <GraduationCap className="w-4 h-4" />
-                          <span className="truncate">{classItem.teacher.name}</span>
+                    {/* Card Header */}
+                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-4 text-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                            <BookOpen className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold truncate">{classItem.name}</h3>
+                            <p className="text-purple-100 text-sm">Lớp học</p>
+                          </div>
                         </div>
-                      )}
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          classItem.status === 'open' 
+                            ? 'bg-green-500/20 text-green-100' 
+                            : 'bg-red-500/20 text-red-100'
+                        }`}>
+                          {classItem.status === 'open' ? 'Hoạt động' : 'Đã đóng'}
+                        </div>
+                      </div>
+                      <p className="text-purple-100 text-sm">
+                        Mã: <span className="font-mono font-medium">{classItem.uniqueCode}</span>
+                      </p>
                     </div>
 
-                    {/* Description */}
-                    {classItem.description && (
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {classItem.description}
-                      </p>
-                    )}
+                    {/* Card Content */}
+                    <div className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          <p className="text-sm text-gray-600">{classItem.studentCount || 0} học sinh</p>
+                        </div>
+                        
+                        {classItem.teacher && (
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer hover:text-purple-600 transition-colors"
+                            onClick={() => {
+                              setSelectedTeacher(classItem.teacher);
+                              setShowTeacherDetail(true);
+                            }}
+                          >
+                            <GraduationCap className="w-4 h-4 text-gray-400" />
+                            <p className="text-sm text-gray-600 truncate">{classItem.teacher.name}</p>
+                          </div>
+                        )}
+                        
+                        {classItem.description && (
+                          <div className="flex items-center gap-3">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <p className="text-sm text-gray-600 line-clamp-2">{classItem.description}</p>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedClass(classItem);
-                          setShowMembersModal(true);
-                        }}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
-                      >
-                        <Users className="w-4 h-4" />
-                        Quản lý
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClass(classItem.id || classItem._id)}
-                        className="px-3 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
-                        title="Xóa lớp"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {/* Action Button */}
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <button
+                            onClick={() => {
+                              setSelectedClass(classItem);
+                              setShowMembersModal(true);
+                            }}
+                            className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                          >
+                            <Users className="w-4 h-4" />
+                            Quản lý lớp
+                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedClass(classItem);
+                                setShowMembersModal(true);
+                              }}
+                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                              title="Quản lý"
+                            >
+                              <Users className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClass(classItem.id || classItem._id)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Xóa lớp"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -346,19 +443,23 @@ const ClassManagement: React.FC<{ userRole: string }> = ({ userRole }) => {
 
             {/* Empty State */}
             {classes.length === 0 && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Settings className="w-8 h-8 text-gray-400" />
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-12 h-12 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có lớp học nào</h3>
-                <p className="text-gray-600 mb-6">Tạo lớp học đầu tiên để bắt đầu quản lý</p>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg"
-                >
-                  <Plus className="w-5 h-5" />
-                  Tạo lớp mới
-                </button>
+                <p className="text-gray-500 mb-6">
+                  {search ? 'Thử thay đổi từ khóa tìm kiếm' : 'Tạo lớp học đầu tiên để bắt đầu quản lý'}
+                </p>
+                {!search && (
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Tạo lớp mới
+                  </button>
+                )}
               </div>
             )}
 

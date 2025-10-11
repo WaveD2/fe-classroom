@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { Home, Menu, LogOut, User as UserIcon } from "lucide-react";
+import { Home, Menu, LogOut, User as UserIcon, Award } from "lucide-react";
 import { useState } from "react";
 import {  ROLE, User } from "../types";
 import { logout, updateProfile } from "../api/auth";
@@ -53,6 +53,7 @@ export default function Layout() {
 function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
   const menu = [
     { to: "/", label: "Lớp học", icon: <Home className="w-5 h-5" /> },
+    { to: "/grades", label: "Điểm số", icon: <Award className="w-5 h-5" /> },
   ]
   if(user.role === ROLE.ADMIN) {
     menu.push(
@@ -119,7 +120,7 @@ function Header({
   };
 
   return (
-    <header className="h-14 flex items-center justify-between px-4 border-b bg-white shadow-sm sticky top-0 z-20">
+    <header className="h-14 flex items-center justify-between px-4 bg-white shadow-sm sticky top-0 z-20">
       <div className="flex items-center gap-3">
         <button
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"

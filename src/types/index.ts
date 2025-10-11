@@ -28,6 +28,9 @@ export interface User {
     createdAt: Date;
     token: string;
     role: ROLE.STUDENT | ROLE.TEACHER | ROLE.ADMIN;
+    attendanceCount: number;
+    attendanceRate: number;
+    attendanceTimes: string[];
 }
 
 export interface SensorData {
@@ -199,5 +202,118 @@ export interface ClassFilter {
     status?: STATUS_CLASS;
 }
 
+export type FileType = 'image' | 'document';
+
+export interface UploadedFile {
+  public_id: string;
+  url: string;
+  format: string;
+  size: number;
+  type: FileType;
+  created_at: string;
+}
+
+export interface UploadResponse {
+  success: boolean;
+  data?: UploadedFile;
+  error?: string;
+}
+
+export interface MultipleUploadResponse {
+  success: boolean;
+  data?: UploadedFile[];
+  errors?: string[];
+}
+
+
 export type WelcomeMessage = BaseMessage<{ message: string }>;
 export type UserLoginMessage = BaseMessage<{ user: User }>;
+
+// Grade Management Types
+export enum GRADE_TYPE {
+  ASSIGNMENT = 'assignment',
+  QUIZ = 'quiz',
+  PARTICIPATION = 'participation',
+  HOMEWORK = 'homework',
+  PROJECT = 'project',
+  EXAM = 'exam'
+}
+
+export interface Grade extends DateTime {
+  _id: string;
+  classId: string;
+  studentId: string;
+  gradeType: GRADE_TYPE;
+  gradeName: string;
+  maxScore: number;
+  actualScore: number;
+  percentage: number;
+  description?: string;
+  gradedBy: User;
+  gradedAt: string;
+  student: User
+}
+
+export interface GradeWithStudent extends Grade {
+  student: User;
+}
+
+export interface GradeStatistics {
+  totalStudents: number;
+  totalGrades: number;
+  averageClassGrade: number;
+  gradeDistribution: {
+    excellent: number;
+    good: number;
+    average: number;
+    belowAverage: number;
+  };
+}
+
+export interface StudentGradeInfo {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  averageGrade: number;
+  totalGrades: number;
+  grades: Grade[];
+}
+
+export interface ClassGradeStatistics {
+  classInfo: {
+    _id: string;
+    name: string;
+    description: string;
+  };
+  statistics: GradeStatistics;
+  studentGrades: StudentGradeInfo[];
+}
+
+export interface StudentGradesResponse {
+  student: User;
+  grades: Grade[];
+  averageGrade: number;
+  totalGrades: number;
+}
+
+export interface CreateGradeRequest {
+  classId: string;
+  studentId: string;
+  gradeType: GRADE_TYPE;
+  gradeName: string;
+  maxScore: number;
+  actualScore: number;
+  description?: string;
+}
+
+export interface UpdateGradeRequest {
+  actualScore?: number;
+  description?: string;
+}
+
+export interface GradeFilter {
+  page?: number;
+  limit?: number;
+  gradeType?: GRADE_TYPE;
+  search?: string;
+}
