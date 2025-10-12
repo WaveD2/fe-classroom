@@ -1,423 +1,476 @@
-import { useState, useRef } from 'react';
-import { User, GRADE_TYPE, CreateGradeRequest } from '../types';
-import Modal from './Modal';
+import { useState, useCallback, useMemo, memo, useEffect } from 'react';
+import {
+  X,
+  Users,
+  Save,
+  Search,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw
+} from 'lucide-react';
+import { User as UserType, ClassI, GradeData } from '../types';
 import Button from './Button';
-import { useGradeForm } from '../hook/useGrade';
-import { Upload, Download, Plus, Trash2, Award } from 'lucide-react';
-
+import { showSuccess, showError } from './Toast';
 interface BulkGradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   classId: string;
-  students: User[];
+  students: UserType[];
+  classData?: ClassI;
+  onBulkUpdate: (grades: { studentId: string; gradeData: Partial<GradeData> }[]) => Promise<void>;
   onSuccess: () => void;
 }
 
-interface GradeRow {
-  id: string;
+interface StudentGrade {
   studentId: string;
-  gradeType: GRADE_TYPE;
-  gradeName: string;
-  maxScore: number;
-  actualScore: number;
-  description: string;
+  student: UserType;
+  attendance?: number;
+  homework?: number;
+  midterm?: number;
+  final?: number;
 }
 
-const BulkGradeModal = ({ isOpen, onClose, classId, students, onSuccess }: BulkGradeModalProps) => {
-  const [grades, setGrades] = useState<GradeRow[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { bulkCreateGrades, loading } = useGradeForm();
+type FilterMode = 'all' | 'edited' | 'valid' | 'invalid';
+type GradeField = keyof Pick<StudentGrade, 'attendance' | 'homework' | 'midterm' | 'final'>;
 
-  const addGradeRow = () => {
-    const newGrade: GradeRow = {
-      id: Date.now().toString(),
-      studentId: '',
-      gradeType: GRADE_TYPE.ASSIGNMENT,
-      gradeName: '',
-      maxScore: 100,
-      actualScore: 0,
-      description: ''
-    };
-    setGrades([...grades, newGrade]);
-  };
+const GRADE_FIELDS: Array<{ key: GradeField; label: string; weight: string }> = [
+  { key: 'attendance', label: 'Chuyên cần', weight: '10%' },
+  { key: 'homework', label: 'Bài tập', weight: '20%' },
+  { key: 'midterm', label: 'Giữa kỳ', weight: '30%' },
+  { key: 'final', label: 'Cuối kỳ', weight: '40%' }
+];
 
-  const removeGradeRow = (id: string) => {
-    setGrades(grades.filter(grade => grade.id !== id));
-  };
+const FILTER_MODES: Array<{ value: FilterMode; label: string }> = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'edited', label: 'Đã nhập' },
+  { value: 'valid', label: 'Hợp lệ' },
+  { value: 'invalid', label: 'Lỗi' }
+];
 
-  const updateGradeRow = (id: string, field: keyof GradeRow, value: any) => {
-    setGrades(grades.map(grade => 
-      grade.id === id ? { ...grade, [field]: value } : grade
-    ));
-    
-    // Clear error for this field
-    const errorKey = `${id}-${field}`;
-    if (errors[errorKey]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[errorKey];
-        return newErrors;
+const isValidGrade = (value: number | undefined): boolean => {
+  if (value === undefined || value === null) return true;
+  return value >= 0 && value <= 10;
+};
+
+const hasAnyGrade = (grade: StudentGrade): boolean => {
+  return grade.attendance !== undefined ||
+         grade.homework !== undefined ||
+         grade.midterm !== undefined ||
+         grade.final !== undefined;
+};
+
+const isValidRow = (grade: StudentGrade): boolean => {
+  if (!hasAnyGrade(grade)) return false;
+  return isValidGrade(grade.attendance) &&
+         isValidGrade(grade.homework) &&
+         isValidGrade(grade.midterm) &&
+         isValidGrade(grade.final);
+};
+
+const getGradeColor = (value: number | undefined): string => {
+  if (value === undefined) return 'border-gray-300 bg-white';
+  if (!isValidGrade(value)) return 'border-red-300 bg-red-50';
+  if (value >= 8) return 'border-green-300 bg-green-50 text-green-700';
+  if (value >= 6.5) return 'border-blue-300 bg-blue-50 text-blue-700';
+  if (value >= 5) return 'border-yellow-300 bg-yellow-50 text-yellow-700';
+  return 'border-orange-300 bg-orange-50 text-orange-700';
+};
+
+const getRowColor = (grade: StudentGrade): string => {
+  const hasGrades = hasAnyGrade(grade);
+  if (!hasGrades) return 'bg-white border-gray-200 hover:border-gray-300';
+  const isValid = isValidRow(grade);
+  return isValid 
+    ? 'bg-green-50/50 border-green-200' 
+    : 'bg-red-50/50 border-red-200';
+};
+
+const BulkGradeModal = memo(({
+  isOpen,
+  onClose,
+  students,
+  classData,
+  onBulkUpdate,
+  onSuccess
+}: BulkGradeModalProps) => {
+  // State
+  const [grades, setGrades] = useState<Map<string, StudentGrade>>(new Map());
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+
+  useEffect(() => {
+    if (isOpen && students.length > 0) {
+      const newGrades = new Map<string, StudentGrade>();
+      students.forEach(student => {
+        const id = student._id || student.id;
+        newGrades.set(id, {
+          studentId: id,
+          student,
+          attendance: undefined,
+          homework: undefined,
+          midterm: undefined,
+          final: undefined
+        });
       });
+      setGrades(newGrades);
+      setSearchTerm('');
+      setFilterMode('all');
     }
-  };
+  }, [isOpen, students]);
 
-  const validateGrades = () => {
-    const newErrors: Record<string, string> = {};
-    
-    grades.forEach(grade => {
-      if (!grade.studentId) {
-        newErrors[`${grade.id}-studentId`] = 'Chọn học sinh';
+  // Update single grade
+  const updateGrade = useCallback((studentId: string, field: GradeField, value: string) => {
+    const numValue = value === '' ? undefined : parseFloat(value);
+    setGrades(prev => {
+      const newGrades = new Map(prev);
+      const grade = newGrades.get(studentId);
+      if (grade) {
+        newGrades.set(studentId, { ...grade, [field]: numValue });
       }
-      if (!grade.gradeName.trim()) {
-        newErrors[`${grade.id}-gradeName`] = 'Nhập tên điểm';
-      }
-      if (grade.maxScore <= 0) {
-        newErrors[`${grade.id}-maxScore`] = 'Điểm tối đa > 0';
-      }
-      if (grade.actualScore < 0) {
-        newErrors[`${grade.id}-actualScore`] = 'Điểm thực tế ≥ 0';
-      }
-      if (grade.actualScore > grade.maxScore) {
-        newErrors[`${grade.id}-actualScore`] = 'Điểm thực tế ≤ điểm tối đa';
-      }
+      return newGrades;
     });
+  }, []);
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const applyToAll = useCallback((field: GradeField, value: string) => {
+    const numValue = value === '' ? undefined : parseFloat(value);
+    setGrades(prev => {
+      const newGrades = new Map(prev);
+      newGrades.forEach((grade, studentId) => {
+        newGrades.set(studentId, { ...grade, [field]: numValue });
+      });
+      return newGrades;
+    });
+  }, []);
 
-  const handleSubmit = async () => {
-    if (grades.length === 0) {
-      alert('Vui lòng thêm ít nhất một điểm');
+  const handleReset = useCallback(() => {
+    if (!window.confirm('Xóa tất cả dữ liệu đã nhập?')) return;
+    setGrades(prev => {
+      const newGrades = new Map(prev);
+      newGrades.forEach((grade, studentId) => {
+        newGrades.set(studentId, {
+          ...grade,
+          attendance: undefined,
+          homework: undefined,
+          midterm: undefined,
+          final: undefined
+        });
+      });
+      return newGrades;
+    });
+  }, []);
+
+  const stats = useMemo(() => {
+    const allGrades = Array.from(grades.values());
+    const edited = allGrades.filter(hasAnyGrade);
+    const valid = edited.filter(isValidRow);
+    const invalid = edited.filter(g => !isValidRow(g));
+
+    return {
+      total: allGrades.length,
+      edited: edited.length,
+      valid: valid.length,
+      invalid: invalid.length
+    };
+  }, [grades]);
+
+  const filteredRows = useMemo(() => {
+    let rows = Array.from(grades.values());
+
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      rows = rows.filter(g => 
+        g.student.name.toLowerCase().includes(term) ||
+        g.student.email.toLowerCase().includes(term)
+      );
+    }
+
+    // Mode filter
+    switch (filterMode) {
+      case 'edited':
+        rows = rows.filter(hasAnyGrade);
+        break;
+      case 'valid':
+        rows = rows.filter(g => hasAnyGrade(g) && isValidRow(g));
+        break;
+      case 'invalid':
+        rows = rows.filter(g => hasAnyGrade(g) && !isValidRow(g));
+        break;
+    }
+
+    return rows;
+  }, [grades, searchTerm, filterMode]);
+
+  // Submit
+  const handleSubmit = useCallback(async () => {
+    const validGrades = Array.from(grades.values())
+      .filter(g => hasAnyGrade(g) && isValidRow(g));
+
+    if (validGrades.length === 0) {
+      showError('Vui lòng nhập điểm hợp lệ cho ít nhất một học sinh');
       return;
     }
 
-    if (!validateGrades()) {
-      return;
-    }
+    const payload = validGrades.map(g => ({
+      studentId: g.studentId,
+      gradeData: {
+        ...(g.attendance !== undefined && { attendance: g.attendance }),
+        ...(g.homework !== undefined && { homework: g.homework }),
+        ...(g.midterm !== undefined && { midterm: g.midterm }),
+        ...(g.final !== undefined && { final: g.final })
+      }
+    }));
 
+    setLoading(true);
     try {
-      const gradeData: CreateGradeRequest[] = grades.map(grade => ({
-        classId,
-        studentId: grade.studentId,
-        gradeType: grade.gradeType,
-        gradeName: grade.gradeName,
-        maxScore: grade.maxScore,
-        actualScore: grade.actualScore,
-        description: grade.description
-      }));
-
-      await bulkCreateGrades(gradeData);
+      await onBulkUpdate(payload);
+      showSuccess(`Đã cập nhật điểm cho ${validGrades.length} học sinh`);
       onSuccess();
       onClose();
-    } catch (err) {
-      // Error is handled by the hook
+    } catch (error: any) {
+      showError(error.message || 'Có lỗi xảy ra');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [grades, onBulkUpdate, onSuccess, onClose]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Here you would implement CSV/Excel parsing
-    // For now, we'll just show a placeholder
-    alert('Tính năng upload file sẽ được triển khai trong phiên bản tiếp theo');
-  };
-
-  const downloadTemplate = () => {
-    // Create CSV template
-    const headers = ['Học sinh', 'Loại điểm', 'Tên điểm', 'Điểm tối đa', 'Điểm thực tế', 'Mô tả'];
-    const csvContent = [
-      headers.join(','),
-      'Nguyễn Văn A,assignment,Bài tập 1,100,85,Mô tả bài tập',
-      'Trần Thị B,quiz,Kiểm tra 15 phút,100,90,Mô tả kiểm tra'
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'grade_template.csv';
-    link.click();
-  };
-
-  const getGradeTypeLabel = (type: GRADE_TYPE) => {
-    const labels = {
-      [GRADE_TYPE.ASSIGNMENT]: 'Bài tập',
-      [GRADE_TYPE.QUIZ]: 'Kiểm tra',
-      [GRADE_TYPE.PROJECT]: 'Dự án',
-      [GRADE_TYPE.EXAM]: 'Dự án',
-      [GRADE_TYPE.PARTICIPATION]: 'Tham gia',
-      [GRADE_TYPE.HOMEWORK]: 'Bài về nhà',
-    };
-    return labels[type];
-  };
+  if (!isOpen) return null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Tạo điểm hàng loạt"
-    >
-      <div className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <div className="space-y-6">
-          {/* File Upload Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Upload className="w-5 h-5 text-blue-600" />
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+        onClick={loading ? undefined : onClose} 
+      />
+      
+      <div className="absolute inset-4 md:inset-8 bg-white rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-2rem)] md:max-h-[calc(100vh-4rem)]">
+        
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 md:p-6 rounded-t-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Users className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Upload file Excel/CSV
-              </h3>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold">Nhập điểm hàng loạt</h2>
+                <p className="text-indigo-100 text-sm">{classData?.name || 'Lớp học'}</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-4 mb-4">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.xlsx,.xls"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <Button
-                variant="secondary"
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-white hover:bg-gray-50 border border-blue-300 text-blue-700"
-              >
-                <Upload size={16} className="mr-2" />
-                Chọn file
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={downloadTemplate}
-                className="bg-white hover:bg-gray-50 border border-green-300 text-green-700"
-              >
-                <Download size={16} className="mr-2" />
-                Tải template
-              </Button>
-            </div>
-            <div className="bg-white p-4 rounded-lg border border-blue-200">
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>Hướng dẫn:</strong> Tải template CSV, điền thông tin điểm số, sau đó upload file lên hệ thống.
-              </p>
-              <p className="text-sm text-gray-500">
-                Hoặc nhập thông tin trực tiếp bên dưới
-              </p>
-            </div>
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+              aria-label="Đóng"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Manual Input Section */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Plus className="w-5 h-5 text-green-600" />
+          {/* Statistics */}
+          <div className="grid grid-cols-4 gap-2 md:gap-3">
+            {[
+              { label: 'Tổng', value: stats.total, color: 'text-white' },
+              { label: 'Đã nhập', value: stats.edited, color: 'text-yellow-300' },
+              { label: 'Hợp lệ', value: stats.valid, color: 'text-green-300' },
+              { label: 'Lỗi', value: stats.invalid, color: 'text-red-300' }
+            ].map((stat, idx) => (
+              <div key={idx} className="bg-white/10 rounded-lg p-2 md:p-3">
+                <div className={`text-xl md:text-2xl font-bold ${stat.color}`}>
+                  {stat.value}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Nhập thông tin điểm
-                </h3>
+                <div className="text-[10px] md:text-xs text-indigo-200">{stat.label}</div>
               </div>
-              <Button
-                onClick={addGradeRow}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Plus size={16} className="mr-2" />
-                Thêm điểm
-              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Toolbar - Fixed */}
+        <div className="flex-shrink-0 p-3 md:p-4 border-b bg-gray-50">
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Tìm kiếm học sinh..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              />
             </div>
-
-            {grades.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Award className="w-8 h-8 text-gray-400" />
-                </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Chưa có điểm nào</h4>
-                <p className="text-gray-500 mb-4">Nhấn "Thêm điểm" để bắt đầu tạo điểm cho học sinh</p>
-                <Button
-                  onClick={addGradeRow}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+            
+            {/* Filters */}
+            <div className="flex gap-2 flex-wrap">
+              {FILTER_MODES.map(mode => (
+                <button
+                  key={mode.value}
+                  onClick={() => setFilterMode(mode.value)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    filterMode === mode.value
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-300'
+                  }`}
                 >
-                  <Plus size={16} className="mr-2" />
-                  Thêm điểm đầu tiên
-                </Button>
+                  {mode.label}
+                </button>
+              ))}
+              
+              <button
+                onClick={handleReset}
+                disabled={loading || stats.edited === 0}
+                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                title="Reset tất cả"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span className="hidden md:inline">Reset</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Header - Sticky */}
+        <div className="flex-shrink-0 bg-white border-b sticky top-0 z-10 shadow-sm">
+          <div className="grid grid-cols-12 gap-2 p-2 md:p-3 text-[10px] md:text-xs font-medium text-gray-600">
+            <div className="col-span-3 md:col-span-3">Học sinh</div>
+            {GRADE_FIELDS.map(field => (
+              <div key={field.key} className="col-span-2 text-center">
+                <div className="mb-1">{field.label} ({field.weight})</div>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="10"
+                  placeholder="Tất cả"
+                  onChange={(e) => applyToAll(field.key, e.target.value)}
+                  disabled={loading}
+                  className="w-full px-1 md:px-2 py-1 text-center border border-gray-300 rounded text-[10px] md:text-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                />
               </div>
-            ) : (
-              <div className="space-y-4">
-                {grades.map((grade, index) => (
-                  <div key={grade.id} className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-semibold text-blue-600">{index + 1}</span>
-                        </div>
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          Điểm #{index + 1}
-                        </h4>
-                      </div>
-                      <button
-                        onClick={() => removeGradeRow(grade.id)}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Xóa điểm này"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+            ))}
+            <div className="col-span-1 text-center hidden md:block">
+              <div className="mb-1">Status</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Body - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-2 md:p-3 space-y-1 md:space-y-2 bg-gray-50">
+          {filteredRows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+              <AlertCircle className="w-12 h-12 mb-3 opacity-50" />
+              <p className="text-sm">
+                {searchTerm ? 'Không tìm thấy học sinh' : 'Không có học sinh nào'}
+              </p>
+            </div>
+          ) : (
+            filteredRows.map(grade => {
+              const hasGrades = hasAnyGrade(grade);
+              const isValid = isValidRow(grade);
+
+              return (
+                <div
+                  key={grade.studentId}
+                  className={`grid grid-cols-12 gap-2 p-2 rounded-lg border transition-all ${getRowColor(grade)}`}
+                >
+                  {/* Student Info */}
+                  <div className="col-span-3 flex items-center gap-2 min-w-0">
+                    <div className="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                      {grade.student.name.charAt(0).toUpperCase()}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Học sinh *
-                        </label>
-                        <select
-                          value={grade.studentId}
-                          onChange={(e) => updateGradeRow(grade.id, 'studentId', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                        >
-                          <option value="">Chọn học sinh</option>
-                          {students.map(student => (
-                            <option key={student._id} value={student._id}>
-                              {student.name} ({student.email})
-                            </option>
-                          ))}
-                        </select>
-                        {errors[`${grade.id}-studentId`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center">
-                            <span className="w-1 h-1 bg-red-500 rounded-full mr-1"></span>
-                            {errors[`${grade.id}-studentId`]}
-                          </p>
-                        )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
+                        {grade.student.name}
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Loại điểm *
-                        </label>
-                        <select
-                          value={grade.gradeType}
-                          onChange={(e) => updateGradeRow(grade.id, 'gradeType', e.target.value as GRADE_TYPE)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                        >
-                          {Object.values(GRADE_TYPE).map(type => (
-                            <option key={type} value={type}>
-                              {getGradeTypeLabel(type)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Tên điểm *
-                        </label>
-                        <input
-                          type="text"
-                          value={grade.gradeName}
-                          onChange={(e) => updateGradeRow(grade.id, 'gradeName', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                          placeholder="Ví dụ: Bài tập 1"
-                        />
-                        {errors[`${grade.id}-gradeName`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center">
-                            <span className="w-1 h-1 bg-red-500 rounded-full mr-1"></span>
-                            {errors[`${grade.id}-gradeName`]}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Điểm tối đa *
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={grade.maxScore}
-                          onChange={(e) => updateGradeRow(grade.id, 'maxScore', parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                        />
-                        {errors[`${grade.id}-maxScore`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center">
-                            <span className="w-1 h-1 bg-red-500 rounded-full mr-1"></span>
-                            {errors[`${grade.id}-maxScore`]}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Điểm thực tế *
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          max={grade.maxScore}
-                          value={grade.actualScore}
-                          onChange={(e) => updateGradeRow(grade.id, 'actualScore', parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                        />
-                        {errors[`${grade.id}-actualScore`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center">
-                            <span className="w-1 h-1 bg-red-500 rounded-full mr-1"></span>
-                            {errors[`${grade.id}-actualScore`]}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="md:col-span-2 lg:col-span-1">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Mô tả
-                        </label>
-                        <input
-                          type="text"
-                          value={grade.description}
-                          onChange={(e) => updateGradeRow(grade.id, 'description', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                          placeholder="Mô tả thêm..."
-                        />
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate">
+                        {grade.student.email}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Actions */}
-          <div className="bg-gray-50 rounded-xl p-6 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">{grades.length}</span> điểm đã được thêm
-              </div>
-              <div className="flex space-x-3">
-                <Button
-                  variant="secondary"
-                  onClick={onClose}
-                  disabled={loading}
-                  className="px-6 py-3"
-                >
-                  Hủy
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={loading || grades.length === 0}
-                  className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  {loading ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Đang tạo...
+                  {/* Grade Inputs */}
+                  {GRADE_FIELDS.map(field => (
+                    <div key={field.key} className="col-span-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={grade[field.key] ?? ''}
+                        onChange={(e) => updateGrade(grade.studentId, field.key, e.target.value)}
+                        placeholder="0.0"
+                        disabled={loading}
+                        className={`w-full px-1 md:px-2 py-1 md:py-1.5 text-center border rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-50 transition-colors ${
+                          getGradeColor(grade[field.key])
+                        }`}
+                      />
                     </div>
-                  ) : (
-                    `Tạo ${grades.length} điểm`
-                  )}
-                </Button>
-              </div>
+                  ))}
+
+                  {/* Status Icon */}
+                  <div className="col-span-1 flex items-center justify-center">
+                    {hasGrades ? (
+                      isValid ? (
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
+                      )
+                    ) : (
+                      <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-gray-300 rounded-full" />
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer - Fixed */}
+        <div className="flex-shrink-0 p-3 md:p-4 border-t bg-gray-50">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-xs md:text-sm text-gray-600">
+              Hợp lệ: <span className="font-bold text-indigo-600">{stats.valid}</span>
+              <span className="text-gray-400 mx-1">/</span>
+              <span className="text-gray-500">{stats.total}</span>
+            </div>
+            
+            <div className="flex gap-2 md:gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+                disabled={loading}
+                className="text-sm"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || stats.valid === 0}
+                className="min-w-[100px] md:min-w-[120px] text-sm"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Đang lưu...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Save className="w-4 h-4" />
+                    <span>Lưu ({stats.valid})</span>
+                  </div>
+                )}
+              </Button>
             </div>
           </div>
         </div>
       </div>
-    </Modal>
+    </div>
   );
-};
+});
+
+BulkGradeModal.displayName = 'BulkGradeModal';
 
 export default BulkGradeModal;

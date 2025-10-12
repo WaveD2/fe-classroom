@@ -23,6 +23,8 @@ export const getClass = async (filter?: ClassFilter) => {
   if (filter?.status) params.append('status', filter.status);
   
   const response = await api.get(`/class?${params.toString()}`);
+  console.log("response:::", response);
+  
   return response.data;
 };
 

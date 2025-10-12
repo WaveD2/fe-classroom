@@ -10,16 +10,14 @@ import QRDetailModal from './QRDetailModal';
 import ManualAttendanceModal from './ManualAttendanceModal';
 import GradeList from './GradeList';
 import GradeStatistics from './GradeStatistics';
-import GradeModal from './GradeModal';
-import BulkGradeModal from './BulkGradeModal';
+import GradeFormModal from './GradeFormModal';
 import GradeFilters from './GradeFilters';
 import LoadingState from './LoadingState';
 import { ROLE, STATUS_CLASS } from '../types';
-import type { ClassI, User, QrHistoryI, StudentWithAttendance, Grade, GradeFilter } from '../types'; 
+import type { ClassI, User, QrHistoryI, StudentWithAttendance, Grade, GradeFilter,  } from '../types'; 
 import { getAllQR } from '../api/qr';
 import { exportAttendanceClass, getClassDetail } from '../api/class';
-import { useGrades, useClassGradeStatistics } from '../hook/useGrade';
-
+import { useGrades, useClassGradeStatistics } from "../hook/useGrade"
 const ClassDetailView = ({ classData, userRole, onBack }: {
   classData: ClassI;
   userRole: string;
@@ -38,25 +36,28 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
   // Grade Management states
   const [selectedGrade, setSelectedGrade] = useState<Grade | undefined>(undefined);
   const [showGradeModal, setShowGradeModal] = useState(false);
-  const [showBulkGradeModal, setShowBulkGradeModal] = useState(false);
+  const [gradeModalMode, setGradeModalMode] = useState<'view' | 'edit' | 'create'>('create');
   const [gradeFilters, setGradeFilters] = useState<GradeFilter>({});
-  // const [showGradeStatistics, setShowGradeStatistics] = useState(false);
 
   // Grade Management hooks
   const { 
     grades, 
-    loading: gradesLoading, 
-    // createGrade, 
-    // updateGrade, 
-    deleteGrade, 
-    fetchGrades 
+    loading: gradesLoading,
+    refetch: fetchGrades,
+    updateGradeComponent: updateGrade,
+    calculateFinalGrade,
+    deleteGrade: deleteGradeById
   } = useGrades(classData._id || classData.id, gradeFilters);
-  
+
   const { 
-    statistics, 
-    loading: statisticsLoading, 
-    fetchStatistics 
+    statistics,
+    loading: statisticsLoading,
+    refetch: fetchStatistics
   } = useClassGradeStatistics(classData._id || classData.id);
+
+  const deleteGrade = async (gradeId: string) => {
+    await deleteGradeById(gradeId);
+  };
 
   const refreshClassData = async () => {
     setIsLoading(true);
@@ -138,7 +139,9 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         break;
     }
   }, [activeTab, classData._id, classData.id, userRole]);
- 
+  
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
@@ -219,19 +222,15 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
                   </Button>
                   
                   <Button 
-                    onClick={() => setShowGradeModal(true)} 
+                    onClick={() => {
+                      setSelectedGrade(undefined);
+                      setGradeModalMode('create');
+                      setShowGradeModal(true);
+                    }} 
                     className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
                   >
                     <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="font-medium">Tạo điểm</span>
-                  </Button>
-
-                  <Button 
-                    onClick={() => setShowBulkGradeModal(true)} 
-                    className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
-                  >
-                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="font-medium">Tạo điểm hàng loạt</span>
                   </Button>
                   
                   {userRole === ROLE.TEACHER && (
@@ -328,7 +327,7 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
             {activeTab === "grades" && (
               <div className="space-y-6">
                 <GradeFilters
-                  onFilterChange={setGradeFilters}
+                  onFilterChange={(filters) => setGradeFilters(prev => ({ ...prev, ...filters }))}
                   onReset={() => setGradeFilters({})}
                   loading={gradesLoading}
                 />
@@ -340,11 +339,13 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
                     loading={false}
                     onEdit={(grade) => {
                       setSelectedGrade(grade);
+                      setGradeModalMode('edit');
                       setShowGradeModal(true);
                     }}
                     onDelete={deleteGrade}
                     onView={(grade) => {
                       setSelectedGrade(grade);
+                      setGradeModalMode('view');
                       setShowGradeModal(true);
                     }}
                     showActions={userRole === ROLE.TEACHER || userRole === ROLE.ADMIN}
@@ -394,7 +395,7 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         onSuccess={refreshClassData}
       />
 
-      <GradeModal
+      <GradeFormModal
         isOpen={showGradeModal}
         onClose={() => {
           setShowGradeModal(false);
@@ -402,19 +403,12 @@ const ClassDetailView = ({ classData, userRole, onBack }: {
         }}
         classId={classData._id || classData.id}
         students={listStudent}
+        classData={classData}
         grade={selectedGrade}
-        onSuccess={() => {
-          fetchGrades();
-          refreshClassData();
-        }}
+        mode={gradeModalMode}
+        onUpdateComponent={updateGrade}
+        onCalculateFinal={calculateFinalGrade}
         onDelete={deleteGrade}
-      />
-
-      <BulkGradeModal
-        isOpen={showBulkGradeModal}
-        onClose={() => setShowBulkGradeModal(false)}
-        classId={classData._id || classData.id}
-        students={listStudent}
         onSuccess={() => {
           fetchGrades();
           refreshClassData();

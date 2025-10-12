@@ -32,12 +32,10 @@ const GradeFilters = ({ onFilterChange, onReset, loading = false }: GradeFilters
 
   const getGradeTypeLabel = (type: GRADE_TYPE) => {
     const labels = {
-      [GRADE_TYPE.ASSIGNMENT]: 'Bài tập',
-      [GRADE_TYPE.QUIZ]: 'Kiểm tra',
-      [GRADE_TYPE.PROJECT]: 'Dự án',
-      [GRADE_TYPE.PARTICIPATION]: 'Tham gia',
-      [GRADE_TYPE.HOMEWORK]: 'Bài về nhà',
-      [GRADE_TYPE.EXAM]: 'Bài về nhà',
+      [GRADE_TYPE.ATTENDANCE]: 'Chuyên cần',
+      [GRADE_TYPE.HOMEWORK]: 'Bài tập',
+      [GRADE_TYPE.MIDTERM]: 'Giữa kỳ',
+      [GRADE_TYPE.FINAL]: 'Cuối kỳ',
     };
     return labels[type];
   };

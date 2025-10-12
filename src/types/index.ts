@@ -13,7 +13,12 @@ export interface DateTime{
     updatedAt?: Date;
     createdAt?: Date;
 }
-
+export enum GRADE_TYPE {
+  ATTENDANCE = 'attendance',
+  MIDTERM = 'midterm',
+  FINAL = 'final',
+  HOMEWORK = 'homework'
+} 
 export interface User {
     _id: string;
     id: string;
@@ -130,6 +135,7 @@ export interface ClassI extends DateTime {
     status: STATUS_CLASS;
     uniqueCode: string;
     studentCount: number;
+    students?: User[];
 }
 
 export interface HistoryAttendance extends DateTime {
@@ -229,91 +235,147 @@ export interface MultipleUploadResponse {
 export type WelcomeMessage = BaseMessage<{ message: string }>;
 export type UserLoginMessage = BaseMessage<{ user: User }>;
 
-// Grade Management Types
-export enum GRADE_TYPE {
-  ASSIGNMENT = 'assignment',
-  QUIZ = 'quiz',
-  PARTICIPATION = 'participation',
-  HOMEWORK = 'homework',
-  PROJECT = 'project',
-  EXAM = 'exam'
-}
+// ===================================
+// GRADE MANAGEMENT TYPES
+// Cập nhật theo API documentation
+// ===================================
 
-export interface Grade extends DateTime {
+// Grade entity - Điểm của học sinh
+export interface Grade {
   _id: string;
   classId: string;
-  studentId: string;
-  gradeType: GRADE_TYPE;
-  gradeName: string;
-  maxScore: number;
-  actualScore: number;
-  percentage: number;
-  description?: string;
-  gradedBy: User;
-  gradedAt: string;
-  student: User
-}
-
-export interface GradeWithStudent extends Grade {
-  student: User;
-}
-
-export interface GradeStatistics {
-  totalStudents: number;
-  totalGrades: number;
-  averageClassGrade: number;
-  gradeDistribution: {
-    excellent: number;
-    good: number;
-    average: number;
-    belowAverage: number;
-  };
-}
-
-export interface StudentGradeInfo {
-  studentId: string;
-  studentName: string;
-  studentEmail: string;
-  averageGrade: number;
-  totalGrades: number;
-  grades: Grade[];
-}
-
-export interface ClassGradeStatistics {
-  classInfo: {
+  studentId: {
     _id: string;
     name: string;
-    description: string;
+    email: string;
   };
-  statistics: GradeStatistics;
-  studentGrades: StudentGradeInfo[];
+  attendance: number;    // Chuyên cần (0-10)
+  homework: number;      // Bài tập (0-10)
+  midterm: number;       // Giữa kỳ (0-10)
+  final: number;         // Cuối kỳ (0-10)
+  letterGrade?: string | null;  // Điểm chữ (A+, A, B+, B, C+, C, D+, D, F)
+  gpaValue?: number | null;     // GPA (0.0 - 4.0)
+  gradedBy?: {
+    _id: string;
+    name: string;
+    email: string;
+  } | null;
+  updatedAt: string;
+  createdAt?: string;
 }
 
-export interface StudentGradesResponse {
-  student: User;
-  grades: Grade[];
-  averageGrade: number;
-  totalGrades: number;
+// Grade data for partial updates
+export interface GradeData {
+  attendance?: number;
+  homework?: number;
+  midterm?: number;
+  final?: number;
 }
 
-export interface CreateGradeRequest {
-  classId: string;
-  studentId: string;
-  gradeType: GRADE_TYPE;
-  gradeName: string;
-  maxScore: number;
-  actualScore: number;
-  description?: string;
-}
-
-export interface UpdateGradeRequest {
-  actualScore?: number;
-  description?: string;
-}
-
+// Grade filter for queries
 export interface GradeFilter {
   page?: number;
   limit?: number;
-  gradeType?: GRADE_TYPE;
-  search?: string;
+  studentId?: string;
+}
+
+// ===================================
+// API RESPONSE TYPES
+// ===================================
+
+// Response for update/create grade component (API 1)
+export interface UpdateGradeComponentResponse {
+  message: string;
+  data: Grade;
+}
+
+// Response for calculate final grade for 1 student (API 2)
+export interface CalculateFinalGradeResponse {
+  message: string;
+  data: Grade;
+}
+
+// Response for calculate final grade for class (API 3)
+export interface CalculateFinalGradeClassResponse {
+  message: string;
+  data: {
+    totalUpdated: number;
+    grades: Grade[];
+  };
+}
+
+// Response for get student grade (API 4)
+export interface StudentGradeResponse {
+  message: string;
+  data: {
+    student: {
+      _id: string;
+      name: string;
+      email: string;
+    };
+    grade: Grade | {
+      classId: string;
+      studentId: string;
+      attendance: number;
+      homework: number;
+      midterm: number;
+      final: number;
+      letterGrade: null;
+      gpaValue: null;
+      gradedBy: null;
+      updatedAt: null;
+    };
+  };
+}
+
+// Response for get class grades list (API 5)
+export interface ClassGradesResponse {
+  message: string;
+  data: {
+    grades: Grade[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+
+// Response for get class grade statistics (API 6)
+export interface ClassGradeStatisticsResponse {
+  message: string;
+  data: {
+    classInfo: {
+      _id: string;
+      name: string;
+      description: string;
+    };
+    statistics: {
+      totalStudents: number;
+      totalGrades: number;
+      studentsWithGrades: number;
+      studentsWithoutGrades: number;
+      studentsWithFinalGrade: number;
+      averageGPA: string;
+      gradeDistribution: {
+        "A+": number;
+        "A": number;
+        "B+": number;
+        "B": number;
+        "C+": number;
+        "C": number;
+        "D+": number;
+        "D": number;
+        "F": number;
+      };
+    };
+    students: User[];
+    grades: Grade[];
+  };
+}
+
+// Response for delete grade (API 7)
+export interface DeleteGradeResponse {
+  message: string;
 }
