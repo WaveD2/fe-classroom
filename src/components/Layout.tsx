@@ -25,18 +25,104 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       <Sidebar user={user} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col h-screen overflow-hidden">
         <Header 
           user={user} 
           setSidebarOpen={setSidebarOpen} 
           onShowProfile={() => setShowProfileModal(true)}
         />
-        <main className="flex-1 overflow-y-auto  p-2 overflow-x-hidden bg-gray-50">
-          <Outlet />
-        </main>
+        
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <main className="p-2 bg-gray-50 min-h-full">
+            <Outlet />
+          </main>
+          
+          {/* Footer */}
+          <footer className="bg-white border-t border-gray-200 px-4 py-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Brand Section */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-indigo-600">PTIT</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Hệ thống quản lý lớp học và điểm số thông minh, giúp giáo viên và học sinh quản lý hiệu quả.
+                  </p>
+                </div>
+                
+                {/* Quick Links */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Liên kết nhanh</h4>
+                  <ul className="space-y-2">
+                    <li>
+                      <a href="/" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Lớp học
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/grades" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Điểm số
+                      </a>
+                    </li>
+                    {user?.role === ROLE.ADMIN && (
+                      <>
+                        <li>
+                          <a href="/student" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Quản lý học sinh
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/teacher" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Quản lý giáo viên
+                          </a>
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+                
+                {/* Contact Info */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Thông tin liên hệ</h4>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Email:</span> support@ptit.edu.vn
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Điện thoại:</span> (024) 1234-5678
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Địa chỉ:</span> Hà Nội, Việt Nam
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Bottom Bar */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
+                  <p className="text-xs text-gray-500">
+                    © 2024 PTIT. Tất cả quyền được bảo lưu.
+                  </p>
+                  <div className="flex space-x-4">
+                    <a href="#" className="text-xs text-gray-500 hover:text-indigo-600 transition-colors">
+                      Chính sách bảo mật
+                    </a>
+                    <a href="#" className="text-xs text-gray-500 hover:text-indigo-600 transition-colors">
+                      Điều khoản sử dụng
+                    </a>
+                    <a href="#" className="text-xs text-gray-500 hover:text-indigo-600 transition-colors">
+                      Hỗ trợ
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
       </div>
 
       {/* Profile Modal */}
@@ -73,7 +159,7 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform md:translate-x-0 transition-transform duration-300 ease-in-out
+        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform md:translate-x-0 transition-transform duration-300 ease-in-out md:overflow-y-auto
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="h-full flex flex-col p-4">
@@ -120,7 +206,7 @@ function Header({
   };
 
   return (
-    <header className="h-14 flex items-center justify-between px-4 bg-white shadow-sm sticky top-0 z-20">
+    <header className="h-14 flex items-center justify-between px-4 bg-white shadow-sm z-20 flex-shrink-0">
       <div className="flex items-center gap-3">
         <button
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"
