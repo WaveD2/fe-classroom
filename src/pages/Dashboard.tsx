@@ -1,25 +1,21 @@
-import { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { 
   PlusCircle, 
   BookOpen, 
   QrCode,
-  Users,
-  GraduationCap,
-  Activity,
-  BarChart3,
-  Grid,
-  List,
   ArrowRight
 } from 'lucide-react';
-import ClassDetailView from '../components/ClassDetailView';
-import Button from '../components/Button';
-import SearchBar from '../components/Search';
-import ClassGrid from '../components/ClassGrid';
-import QRScanner from '../components/QrScan';
-import Pagination from '../components/Pagination';
+import ClassDetailView from '../components/class/ClassDetailView';
+import Button from '../components/common/Button';
+import SearchBar from '../components/common/Search';
+import ClassGrid from '../components/class/ClassGrid';
+import QRScanner from '../components/QR/QrScan';
+import Pagination from '../components/common/Pagination';
 import { ClassI, ROLE, ClassFilter, PaginationInfo } from '../types';
 import { createClass, deleteClass, getClass, getClassByAdmin, updateClass } from '../api/class';
 import { showError, showSuccess } from '../components/Toast';
+import ClassStats from '../components/class/ClassStats';
+import ClassFormModal from '../components/class/ClassFormModal';
 
 const Dashboard = memo(({ userRole }: { userRole: string }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,7 +23,6 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
   const [showCreateClass, setShowCreateClass] = useState(false); 
   const [selectedClass, setSelectedClass] = useState<ClassI | null>(null);
   const [classes, setClasses] = useState<ClassI[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 12,
@@ -36,23 +31,7 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Memoized stats calculation
-  const stats = useMemo(() => {
-    const activeClasses = classes.filter(c => c.status === 'open').length;
-    const totalStudents = classes.reduce((sum, c) => sum + (c.studentCount || 0), 0);
-    const uniqueTeachers = new Set(classes.filter(c => c.teacher).map(c => c.teacher?.id)).size;
-    const averageStudents = classes.length > 0 ? Math.round(totalStudents / classes.length) : 0;
 
-    return {
-      totalClasses: pagination.total,
-      activeClasses,
-      totalStudents,
-      uniqueTeachers,
-      averageStudents
-    };
-  }, [classes, pagination.total]);
-
-  // Fetch classes data - only depend on userRole and pagination.limit
   const fetchClassesData = useCallback(async (page = 1, search = '') => {
     setIsLoading(true);
     try {
@@ -82,14 +61,12 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
     }
   }, [userRole, pagination.limit]);
 
-  // Initial load - only when userRole changes
   useEffect(() => {
     fetchClassesData(1, '');
-  }, [userRole, fetchClassesData]); // Include fetchClassesData
+  }, [userRole, fetchClassesData]); 
 
-  // Search with debounce - separate effect
   useEffect(() => {
-    if (searchTerm === '') return; // Don't call API if search is empty
+    if (searchTerm === '') return;  
     
     const timeoutId = setTimeout(() => {
       setPagination(prev => ({ ...prev, page: 1 }));
@@ -97,28 +74,20 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, fetchClassesData]); // Include fetchClassesData
+  }, [searchTerm, fetchClassesData]);  
 
-  // Page change
   const handlePageChange = useCallback((page: number) => {
     setPagination(prev => ({ ...prev, page }));
     fetchClassesData(page, searchTerm);
   }, [fetchClassesData, searchTerm]);
 
-  // Search change
   const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value);
   }, []);
-
-  // View mode change
-  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    setViewMode(mode);
-  }, []);
-
-  // Create class
-  const handleCreateClass = useCallback(async (newClass: { name: string; code: string }) => {
+ 
+  const handleCreateClass = useCallback(async (data: { name: string; description: string; teacherId: string; code?: string, academicCredit: number }) => {
     try {
-      const response = await createClass(newClass);
+      const response = await createClass(data);
       if (response?.data) {
         await fetchClassesData(1, searchTerm);
         setShowCreateClass(false);
@@ -129,7 +98,6 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
     }
   }, [fetchClassesData, searchTerm]);
 
-  // Update class
   const handleUpdateClass = useCallback(async (id: string, updatedClass: Partial<ClassI>) => {
     try {
       const response = await updateClass(id, updatedClass);
@@ -155,158 +123,6 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
     }
   }, [fetchClassesData, pagination.page, searchTerm]);
 
-  // Get role-specific stats
-  const getStatsForRole = () => {
-    switch (userRole) {
-      case ROLE.STUDENT:
-        return [
-          {
-            icon: BookOpen,
-            label: 'Lớp đã tham gia',
-            value: stats.totalClasses,
-            color: 'blue',
-            bgColor: 'bg-blue-100',
-            textColor: 'text-blue-600'
-          },
-          {
-            icon: Activity,
-            label: 'Lớp đang học',
-            value: stats.activeClasses,
-            color: 'green',
-            bgColor: 'bg-green-100',
-            textColor: 'text-green-600'
-          },
-          {
-            icon: Users,
-            label: 'Bạn học cùng',
-            value: Math.max(0, stats.totalStudents - 1),
-            color: 'purple',
-            bgColor: 'bg-purple-100',
-            textColor: 'text-purple-600'
-          },
-          {
-            icon: GraduationCap,
-            label: 'Giáo viên',
-            value: stats.uniqueTeachers,
-            color: 'orange',
-            bgColor: 'bg-orange-100',
-            textColor: 'text-orange-600'
-          }
-        ];
-      case ROLE.TEACHER:
-        return [
-          {
-            icon: BookOpen,
-            label: 'Lớp của tôi',
-            value: stats.totalClasses,
-            color: 'blue',
-            bgColor: 'bg-blue-100',
-            textColor: 'text-blue-600'
-          },
-          {
-            icon: Activity,
-            label: 'Lớp đang dạy',
-            value: stats.activeClasses,
-            color: 'green',
-            bgColor: 'bg-green-100',
-            textColor: 'text-green-600'
-          },
-          {
-            icon: Users,
-            label: 'Tổng học sinh',
-            value: stats.totalStudents,
-            color: 'purple',
-            bgColor: 'bg-purple-100',
-            textColor: 'text-purple-600'
-          },
-          {
-            icon: BarChart3,
-            label: 'TB học sinh/lớp',
-            value: stats.averageStudents,
-            color: 'indigo',
-            bgColor: 'bg-indigo-100',
-            textColor: 'text-indigo-600'
-          }
-        ];
-      case ROLE.ADMIN:
-        return [
-          {
-            icon: BookOpen,
-            label: 'Tổng lớp học',
-            value: stats.totalClasses,
-            color: 'blue',
-            bgColor: 'bg-blue-100',
-            textColor: 'text-blue-600'
-          },
-          {
-            icon: Activity,
-            label: 'Lớp hoạt động',
-            value: stats.activeClasses,
-            color: 'green',
-            bgColor: 'bg-green-100',
-            textColor: 'text-green-600'
-          },
-          {
-            icon: Users,
-            label: 'Tổng học sinh',
-            value: stats.totalStudents,
-            color: 'purple',
-            bgColor: 'bg-purple-100',
-            textColor: 'text-purple-600'
-          },
-          {
-            icon: GraduationCap,
-            label: 'Giáo viên',
-            value: stats.uniqueTeachers,
-            color: 'orange',
-            bgColor: 'bg-orange-100',
-            textColor: 'text-orange-600'
-          }
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const getTitle = () => {
-    switch (userRole) {
-      case ROLE.STUDENT:
-        return 'Lớp học của tôi';
-      case ROLE.TEACHER:
-        return 'Quản lý lớp học';
-      case ROLE.ADMIN:
-        return 'Dashboard quản trị';
-      default:
-        return 'Dashboard';
-    }
-  };
-
-  const getSubtitle = () => {
-    switch (userRole) {
-      case ROLE.STUDENT:
-        return 'Tham gia và theo dõi lớp học của bạn';
-      case ROLE.TEACHER:
-        return 'Quản lý và theo dõi các lớp học của bạn';
-      case ROLE.ADMIN:
-        return 'Tổng quan hệ thống và quản lý toàn bộ';
-      default:
-        return 'Quản lý lớp học';
-    }
-  };
-
-  const getGradientClass = () => {
-    switch (userRole) {
-      case ROLE.STUDENT:
-        return 'from-green-600 to-blue-600';
-      case ROLE.TEACHER:
-        return 'from-purple-600 to-blue-600';
-      case ROLE.ADMIN:
-        return 'from-indigo-600 to-purple-600';
-      default:
-        return 'from-blue-600 to-purple-600';
-    }
-  };
-
   if (selectedClass) {
     return (
       <ClassDetailView
@@ -318,27 +134,19 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-white shadow-sm flex-shrink-0">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <div className="bg-white shadow-sm sticky top-0 z-10">
         <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-            {/* Title Section */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-1">
-                <div className={`p-2 bg-gradient-to-r ${getGradientClass()} rounded-xl`}>
-                  <BookOpen className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    {getTitle()}
-                  </h1>
-                  <p className="text-gray-600 text-sm">{getSubtitle()}</p>
-                </div>
-              </div>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex-1">
+              <SearchBar
+                placeholder="Tìm kiếm lớp học theo tên, mã lớp..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                delay={500}
+              />
             </div>
-
-            {/* Action Buttons */}
+            
             <div className="flex flex-col sm:flex-row gap-2">
               {userRole === ROLE.STUDENT && (
                 <Button
@@ -386,47 +194,10 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
               )}
             </div>
           </div>
-
-          {/* Search and View Controls */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <SearchBar
-                placeholder="Tìm kiếm lớp học theo tên, mã lớp..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                delay={500}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleViewModeChange('grid')}
-                className={`p-2 rounded-lg transition-all duration-200 ${
-                  viewMode === 'grid' 
-                    ? 'bg-blue-100 text-blue-600 shadow-sm' 
-                    : 'text-gray-500 hover:bg-gray-100'
-                }`}
-                title="Xem dạng lưới"
-              >
-                <Grid className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => handleViewModeChange('list')}
-                className={`p-2 rounded-lg transition-all duration-200 ${
-                  viewMode === 'list' 
-                    ? 'bg-blue-100 text-blue-600 shadow-sm' 
-                    : 'text-gray-500 hover:bg-gray-100'
-                }`}
-                title="Xem dạng danh sách"
-              >
-                <List className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Stats Section - Compact */}
-      <div className="px-4 sm:px-6 lg:px-8 py-4 flex-shrink-0">
+      <div className="p-4 flex-shrink-0">
         {isLoading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -444,39 +215,21 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {getStatsForRole().map((stat) => {
-              const IconComponent = stat.icon;
-              return (
-                <div 
-                  key={stat.label}
-                  className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={`p-1.5 ${stat.bgColor} rounded-lg`}>
-                      <IconComponent className={`w-4 h-4 ${stat.textColor}`} />
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                      <p className="text-xs text-gray-600">{stat.label}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            <ClassStats
+              classes={classes} 
+              pagination={pagination} 
+              loading={isLoading} 
+            />
         )}
       </div>
 
-      {/* Main Content - Flexible height */}
-      <div className="flex-1 px-4 sm:px-6 lg:px-8 pb-4 overflow-hidden">
+      <div className="flex-1 p-4 overflow-hidden">
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
           <div className="h-full flex flex-col">
-            {/* Class Grid - Takes remaining space */}
             <div className="flex-1 min-h-0">
               <ClassGrid
                 classes={classes}
@@ -517,18 +270,15 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
               </div>
             )}
 
-            {/* Pagination - Fixed at bottom */}
-            {pagination.totalPages > 1 && (
-              <div className="mt-4 flex-shrink-0">
-                <Pagination
-                  currentPage={Number(pagination.page)}
-                  totalPages={pagination.totalPages}
-                  totalItems={pagination.total}
-                  itemsPerPage={pagination.limit}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
+            <div className="mt-4 flex-shrink-0">
+              <Pagination
+                currentPage={Number(pagination.page)}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.total}
+                itemsPerPage={pagination.limit}
+                onPageChange={handlePageChange}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -542,50 +292,11 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
 
       {/* Create Class Modal */}
       {showCreateClass && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-2xl p-6 shadow-lg w-full max-w-md animate-fadeIn">
-            <h2 className="text-lg font-semibold mb-4">Tạo lớp học mới</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.target as HTMLFormElement;
-                const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-                const code = (form.elements.namedItem("code") as HTMLInputElement).value;
-                handleCreateClass({ name, code });
-              }}
-              className="space-y-4"
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="Tên lớp học"
-                required
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              />
-              <input
-                type="text"
-                name="code"
-                placeholder="Mã lớp (tùy chọn)"
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              />
-              <div className="flex justify-end gap-3">
-                <Button 
-                  type="button"
-                  onClick={() => setShowCreateClass(false)} 
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors"
-                >
-                  Hủy
-                </Button>
-                <Button 
-                  type="submit" 
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all"
-                >
-                  Tạo lớp
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ClassFormModal
+          isOpen={showCreateClass}
+          onClose={() => setShowCreateClass(false)}
+          onSubmit={handleCreateClass}
+      />
       )}
     </div>
   );

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Award, 
   BarChart3, 
-  ArrowLeft, 
   BookOpen, 
   Users, 
   Plus,
@@ -13,53 +12,44 @@ import {
   Calculator,
   FileSpreadsheet
 } from 'lucide-react';
-import Button from '../components/Button';
-import GradeList from '../components/GradeList';
-import GradeStatistics from '../components/GradeStatistics';
-import GradeFormModal from '../components/GradeFormModal';
-import BulkGradeModal from '../components/BulkGradeModal';
-import ExcelGradeUploader from '../components/ExcelGradeUploader';
+import Button from '../components/common/Button';
+import GradeList from '../components/grade/GradeList';
+import GradeStatistics from '../components/grade/GradeStatistics';
+import GradeFormModal from '../components/grade/GradeFormModal';
+import BulkGradeModal from '../components/grade/BulkGradeModal';
+import ExcelGradeUploader from '../components/grade/ExcelGradeUploader';
 import { useGrades, useClassGradeStatistics } from '../hook/useGrade';
 import { ClassI, GradeFilter, ROLE, Grade, GradeData, User as UserType } from '../types';
 import { getClass, getClassDetail } from '../api/class';
 import { showSuccess, showError } from '../components/Toast';
 import * as gradeApi from '../api/grade';
 
-/**
- * GradeManagement - Trang quản lý điểm
- * Tối ưu hóa diện tích hiển thị điểm
- */
-
+ 
 const GradeManagement = memo(() => {
   const navigate = useNavigate();
   
-  // User info
   const [user] = useState<any>(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
   
-  // Class management
   const [classes, setClasses] = useState<ClassI[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedClassDetail, setSelectedClassDetail] = useState<ClassI | null>(null);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingClassDetail, setLoadingClassDetail] = useState(false);
   
-  // UI state
   const [activeTab, setActiveTab] = useState<'grades' | 'statistics'>('grades');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [gradeFilters, setGradeFilters] = useState<GradeFilter>({});
   const [error, setError] = useState<string | null>(null);
   
-  // Modal state
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showExcelUploader, setShowExcelUploader] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'create'>('create');
   
-  // Hooks
   const { 
     grades, 
     loading: gradesLoading,
@@ -78,7 +68,6 @@ const GradeManagement = memo(() => {
     refetch: fetchStatistics 
   } = useClassGradeStatistics(selectedClassId);
 
-  // Load danh sách lớp
   useEffect(() => {
     const fetchClasses = async () => {
       setLoadingClasses(true);
@@ -106,7 +95,6 @@ const GradeManagement = memo(() => {
     fetchClasses();
   }, []);
 
-  // Load chi tiết lớp khi chọn
   useEffect(() => {
     if (!selectedClassId) {
       setSelectedClassDetail(null);
@@ -141,7 +129,6 @@ const GradeManagement = memo(() => {
     }
   }, [gradesError, statisticsError]);
 
-  // Event handlers
   const handleClassChange = useCallback((classId: string) => {
     setSelectedClassId(classId);
     setSelectedClassDetail(null);
@@ -236,11 +223,9 @@ const GradeManagement = memo(() => {
     await gradeApi.bulkUpdateGrades(selectedClassId, grades);
   }, [selectedClassId]);
 
-  // Computed values
   const students: UserType[] = selectedClassDetail?.students || [];
   const canManageGrades = user?.role === ROLE.TEACHER || user?.role === ROLE.ADMIN;
 
-  // Loading state
   if (loadingClasses) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
@@ -252,7 +237,6 @@ const GradeManagement = memo(() => {
     );
   }
 
-  // Empty state
   if (!classes?.length) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -277,23 +261,12 @@ const GradeManagement = memo(() => {
     );
   }
 
-  // Main render
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Compact Header - Chỉ có select và actions */}
       <div className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Back + Select Class */}
             <div className="flex items-center gap-3 flex-1 max-w-2xl">
-              <button
-                onClick={() => navigate(-1)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
-                title="Quay lại"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-
               <select
                 value={selectedClassId}
                 onChange={(e) => handleClassChange(e.target.value)}
@@ -311,9 +284,7 @@ const GradeManagement = memo(() => {
               )}
             </div>
 
-            {/* Right: View Mode + Actions */}
             <div className="flex items-center gap-2">
-              {/* View Mode Toggle */}
               {activeTab === 'grades' && (
                 <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                   <button
@@ -341,7 +312,6 @@ const GradeManagement = memo(() => {
                 </div>
               )}
 
-              {/* Action Buttons - Compact */}
               {canManageGrades && selectedClassDetail && (
                 <>
                   <button
@@ -387,9 +357,7 @@ const GradeManagement = memo(() => {
         </div>
       </div>
 
-      {/* Main Content - Full width */}
       <div className="p-4">
-        {/* Loading class detail */}
         {!selectedClassDetail && selectedClassId && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12">
             <div className="text-center">
@@ -407,7 +375,7 @@ const GradeManagement = memo(() => {
               <nav className="flex px-4">
                 <button
                   onClick={() => handleTabChange('grades')}
-                  className={`py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
+                  className={`flex py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === 'grades'
                       ? 'border-blue-500 text-blue-600 bg-white'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -419,7 +387,7 @@ const GradeManagement = memo(() => {
                 {canManageGrades && (
                   <button
                     onClick={() => handleTabChange('statistics')}
-                    className={`py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === 'statistics'
                         ? 'border-blue-500 text-blue-600 bg-white'
                         : 'border-transparent text-gray-500 hover:text-gray-700'

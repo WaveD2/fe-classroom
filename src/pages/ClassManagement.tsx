@@ -8,17 +8,17 @@ import {
 } from 'lucide-react';
 import { ClassI, ROLE, PaginationInfo } from '../types';
 import { getClassByAdmin, deleteClass, createClassByAdmin } from '../api/class';
-import SearchBar from '../components/Search';
-import PaginationBar from '../components/PaginationBar';
-import ClassFormModal from '../components/ClassFormModal';
-import ClassMembersModal from '../components/ClassMembersModal';
-import StudentDetailModal from '../components/StudentDetailModal';
-import TeacherDetailModal from '../components/TeacherDetailModal';
+import SearchBar from '../components/common/Search';
+import PaginationBar from '../components/common/PaginationBar';
+import ClassFormModal from '../components/class/ClassFormModal';
+import ClassMembersModal from '../components/class/ClassMembersModal';
+import StudentDetailModal from '../components/user/StudentDetailModal';
+import TeacherDetailModal from '../components/user/TeacherDetailModal';
 import { showSuccess, showError } from '../components/Toast';
-import { ListSkeleton } from '../components/LoadingSkeleton';
-import ClassStats from '../components/ClassStats';
-import ClassCard from '../components/ClassCard';
-import ClassList from '../components/ClassList';
+import { ListSkeleton } from '../components/loading/LoadingSkeleton';
+import ClassStats from '../components/class/ClassStats';
+import ClassCard from '../components/class/ClassCard';
+import ClassList from '../components/class/ClassList';
 
 const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
   const [classes, setClasses] = useState<ClassI[]>([]);
@@ -65,7 +65,7 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
     fetchClasses();
   }, [userRole, pagination.page, pagination.limit, search, fetchClasses]);
 
-  const handleCreateClass = async (data: { name: string; description: string; teacherId: string; code?: string }) => {
+  const handleCreateClass = async (data: { name: string; description: string; teacherId: string; code?: string; academicCredit: number }) => {
     try {
       const response = await createClassByAdmin(data);
       if (response?.success) {
@@ -134,37 +134,8 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-10">
         <div className="px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            {/* Title Section */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    Quản lý lớp học
-                  </h1>
-                  <p className="text-gray-600 text-sm sm:text-base">Tạo và quản lý các lớp học trong hệ thống</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-              >
-                <Plus className="w-5 h-5" />
-                Tạo lớp mới
-              </button>
-            </div>
-          </div>
-
-          {/* Search and View Controls */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex-1">
               <SearchBar
                 value={search}
                 onChange={setSearch}
@@ -194,6 +165,15 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
                 title="Xem dạng danh sách"
               >
                 <List className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+              >
+                <Plus className="w-5 h-5" />
+                Tạo lớp mới
               </button>
             </div>
           </div>

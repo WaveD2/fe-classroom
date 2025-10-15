@@ -10,7 +10,7 @@ const Error = () => {
             Page not found
           </p>
           <p className='mt-2 text-sm text-gray-600 dark:text-gray-400'>
-            Sorry, we couldn't find this person you're looking for.
+            Xin lỗi không truy cập được trang này
           </p>
         </div>
         <div className='mt-2'>
@@ -29,7 +29,7 @@ const Error = () => {
                 d='M3 12h18m-9-9l9 9-9 9'
               />
             </svg>
-            Go back home
+            Trở lại trang chủ
           </a>
         </div>
       </div>
@@ -42,7 +42,7 @@ const Error = () => {
           </div>
           <div className='relative flex justify-center'>
             <span className='px-2 bg-gray-100 dark:bg-gray-800 text-sm text-gray-500 dark:text-gray-400'>
-              If you think this is a mistake, please contact support
+              Nếu có thắc mắc gì hãy liên hệ qua email: tungdev64@gmail.com
             </span>
           </div>
         </div>

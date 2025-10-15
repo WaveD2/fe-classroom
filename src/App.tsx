@@ -1,7 +1,7 @@
 import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { JSX, Suspense, useEffect, useState } from "react";
-import Loading from "./components/Loading";
+import Loading from "./components/loading/Loading";
 import Auth from "./pages/Auth";
 import Error from "./pages/Error";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -12,8 +12,8 @@ import StudentDetailPage from "./pages/StudentDetail";
 import TeacherDetailPage from "./pages/TeacherDetail";
 import ClassManagement from "./pages/ClassManagement";
 import GradeManagement from "./pages/GradeManagement";
-import Layout from "./components/Layout";
-import ErrorBoundary from "./components/ErrorBoundary";
+import Layout from "./components/layout/Layout";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 import { User } from "./types";
 import { ToastContainer } from 'react-toastify';
 

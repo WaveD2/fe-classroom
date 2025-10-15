@@ -1,101 +1,143 @@
 @import "tailwindcss";
+  :root {
+  --bg: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --max-width: 1200px;
+  --radius: 8px;
+  --focus: 3px solid rgba(59,130,246,0.3);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+html {
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 16px; 
+  line-height: 1.5;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+  margin: 0;
+  padding: 0;
+}
 
 body {
-  @apply bg-gray-100 font-sans;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  color: var(--text);
+  font-feature-settings: "kern" 1;
 }
 
-.chat-bubble {
-  @apply rounded-2xl p-3 max-w-[80%] text-sm;
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
 }
 
-.chat-bubble.user {
-  @apply bg-blue-500 text-white ml-auto rounded-br-none shadow;
+ul[class], ol[class] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.chat-bubble.bot {
-  @apply bg-gray-200 text-gray-800 rounded-bl-none shadow;
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+pre, code, kbd, samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+/* =========================
+    Misc
+    ========================= */
+hr {
+  border: none;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+figure {
+  margin: 0;
+}
+
+input:invalid {
+  box-shadow: none;
+}
+
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+@media (max-width: 640px) {
+  html { font-size: 15px; }
+}
+
+@media (max-width: 420px) {
+  html { font-size: 14px; }
+}
+
+
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.15s ease-in-out;
+  }
+  .animate-scaleIn {
+    animation: scaleIn 0.2s ease-in-out;
+  }
+}
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0 }
+  to { opacity: 1 }
 }
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Ẩn scrollbar nhưng vẫn scroll được */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Ẩn scrollbar cho tab navigation */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Line clamp utilities */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-/* Smooth transitions */
-.transition-all {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Hover effects */
-.hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Focus styles */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-}
-
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0 }
+  to { transform: scale(1); opacity: 1 }
 }

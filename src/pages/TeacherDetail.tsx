@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { User } from "../types";
 import { getTeacherById } from "../api/user";
-import LazyLoad from "../components/LazyLoad";
+import LazyLoad from "../components/loading/LazyLoad";
 import { 
   ArrowLeft, 
   GraduationCap, 

@@ -135,6 +135,7 @@ export interface ClassI extends DateTime {
     status: STATUS_CLASS;
     uniqueCode: string;
     studentCount: number;
+    academicCredit: number;
     students?: User[];
 }
 
