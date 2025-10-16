@@ -48,6 +48,7 @@ const GradeFilters = ({ onFilterChange, onReset, loading = false }: GradeFilters
         <h3 className="text-lg font-semibold text-gray-900">Bộ lọc</h3>
         <div className="flex items-center space-x-2">
           <Button
+            className='flex'
             variant="secondary"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}

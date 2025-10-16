@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, User, Mail, Phone, Calendar, GraduationCap, BookOpen, TrendingUp, Clock, Award, Activity, Edit, DeleteIcon } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, GraduationCap, BookOpen, TrendingUp, Clock, Award, Activity, Edit, DeleteIcon } from "lucide-react";
 import { User as UserType } from "../types";
 import { deleteUser, getStudentById } from "../api/user";
 import ProfileModal from "../components/user/ProfileModal";
@@ -48,7 +48,7 @@ export default function StudentDetailPage() {
     };
   
     const handleDelete = (async () => {
-      if (user?.name) {
+      if (user) {
         await deleteUser(user._id || user.id);
         setShowDeleteModal(false);
       }
@@ -157,7 +157,7 @@ export default function StudentDetailPage() {
                     </div>
                   )}
                   
-                  {user.dateOfBirth && (
+                  {/* {user.dateOfBirth && (
                     <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                       <div className="p-2 bg-orange-100 rounded-lg">
                         <Calendar className="w-5 h-5 text-orange-600" />
@@ -167,7 +167,7 @@ export default function StudentDetailPage() {
                         <p className="font-semibold text-gray-900">{new Date(user.dateOfBirth).toLocaleDateString('vi-VN')}</p>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -367,8 +367,8 @@ export default function StudentDetailPage() {
       <ConfirmModal
         open={showDeleteModal}
         type="warning"
-        title="Xác nhận xóa giáo viên"
-        message={`Bạn có chắc chắn muốn xóa giáo viên"${user?.name}" không? Các lớp của giáo viên tham gia sẽ trống giáo viên. Hành động này không thể hoàn tác.`}
+        title="Xác nhận xóa sinh viên"
+        message={`Bạn có chắc chắn muốn xóa sinh viên"${user?.name}" không? Lớp sinh viên sẽ xóa sinh viên ${user?.name}. Hành động này không thể hoàn tác.`}
         onClose={()=> setShowDeleteModal(false)}
         onConfirm={handleDelete}
       />

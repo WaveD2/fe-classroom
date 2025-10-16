@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, ROLE, PaginationInfo } from "../types";
-import { getTeachers } from "../api/user";
+import { createUser, getTeachers } from "../api/user";
 import PaginationBar from "../components/common/PaginationBar";
 import SearchBar from "../components/common/Search";
 import { ListSkeleton, StatsSkeleton } from "../components/loading/LoadingSkeleton";
@@ -15,6 +15,7 @@ import {
   List,
   Plus
 } from "lucide-react";
+import CreateUserModal from "../components/user/CreateUser";
 
 export default function TeachersPage({ userRole }: { userRole: string }) {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: 10, total: 0, totalPages: 0 });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (userRole !== ROLE.ADMIN) {
@@ -30,6 +32,11 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
       return;
     }
   }, [userRole, navigate]);
+
+   const handleSubmit = useCallback( async (data: User) => {
+      await createUser(data as any);
+      fetchData(1, search);
+    }, []);
 
   const fetchData = useMemo(() => {
     return async (page = pagination.page, currentSearch = search) => {
@@ -98,7 +105,7 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                // onClick={() => setShowCreateModal(true)}
+                onClick={() => setIsModalOpen(true)}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
               >
                 <Plus className="w-5 h-5" />
@@ -194,7 +201,6 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
           </div>
         )}
 
-        {/* Pagination */}
           <div className="mt-8">
             <PaginationBar
               page={pagination.page}
@@ -206,6 +212,13 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
             />
           </div>
       </div>
+
+      <CreateUserModal
+        roleUser={ROLE.TEACHER}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

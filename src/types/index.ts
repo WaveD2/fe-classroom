@@ -32,9 +32,9 @@ export interface User {
     phone?: string;
     studentId?: string;
     teacherId?: string;
-    dateOfBirth?: string;
-    subject?: string;
-    experience?: number;
+    password?: string;
+    // subject?: string;
+    // experience?: number;
     createdAt: Date;
     token: string;
     role: ROLE.STUDENT | ROLE.TEACHER | ROLE.ADMIN;

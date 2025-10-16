@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User as UserType, ROLE, PaginationInfo } from "../types";
-import { getStudents } from "../api/user";
+import { createUser, getStudents } from "../api/user";
 import PaginationBar from "../components/common/PaginationBar";
 import SearchBar from "../components/common/Search";
 import { ListSkeleton, StatsSkeleton } from "../components/loading/LoadingSkeleton";
@@ -26,9 +26,11 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleSubmit = useCallback((data: UserType) => {
-    console.log("Form submitted:", data);
+  const handleSubmit = useCallback( async (data: UserType) => {
+    await createUser(data as any);
+    fetchData(1, search);
   }, []);
+
   useEffect(() => {
     if (userRole !== ROLE.ADMIN) {
       navigate("/", { replace: true });
@@ -213,6 +215,7 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
         </div>
       </div>
       <CreateUserModal
+        roleUser={ROLE.STUDENT}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}

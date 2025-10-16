@@ -1,14 +1,15 @@
 import { useState, useCallback, useMemo, memo } from "react";
-import { User, Mail, Phone, Calendar, BookOpen, Briefcase, UserCircle, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { User, Mail, Phone, UserCircle, CheckCircle2, X, Lock } from "lucide-react";
 import { ROLE, User as UserType } from "../../types";
+import FormInput from "../common/FormInput";
 
 
 interface ValidationErrors {
   name?: string;
   email?: string;
   phone?: string;
-  dateOfBirth?: string;
-  subject?: string;
+  password?: string;
+  // subject?: string;
   experience?: string;
 }
 
@@ -17,16 +18,15 @@ interface CreateUserModalProps {
   onClose: () => void;
   onSubmit?: (data: UserType) => void;
   initialData?: Partial<UserType>;
+  roleUser: ROLE;
 }
 
-// Memoized role options để tránh re-render không cần thiết
 const roleOptions = [
   { value: ROLE.STUDENT, label: "Học sinh", icon: "🎓", color: "blue" },
   { value: ROLE.TEACHER, label: "Giáo viên", icon: "👨‍🏫", color: "green" },
-  { value: ROLE.ADMIN, label: "Quản trị viên", icon: "👨‍💼", color: "purple" },
+  // { value: ROLE.ADMIN, label: "Quản trị viên", icon: "👨‍💼", color: "purple" },
 ];
 
-// Component con được memo để tránh re-render
 const RoleButton = memo(({ option, isSelected, onClick }: any) => {
   const getRoleColor = (role: ROLE) => {
     switch (role) {
@@ -55,65 +55,15 @@ const RoleButton = memo(({ option, isSelected, onClick }: any) => {
   );
 });
 
-const FormInput = memo(({ 
-  label, 
-  name, 
-  type = "text", 
-  icon: Icon, 
-  value, 
-  onChange, 
-  onBlur, 
-  error, 
-  touched, 
-  required = false,
-  placeholder,
-  min,
-  max 
-}: any) => (
-  <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-2">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative">
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Icon className="text-gray-400" size={20} />
-      </div>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        min={min}
-        max={max}
-        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${
-          touched && error
-            ? "border-red-300 bg-red-50"
-            : touched && !error && value
-            ? "border-green-300 bg-green-50"
-            : "border-gray-200 bg-gray-50"
-        }`}
-        placeholder={placeholder}
-      />
-    </div>
-    {touched && error && (
-      <div className="flex items-center gap-1 mt-2 text-red-600 text-sm">
-        <AlertCircle size={14} />
-        <span>{error}</span>
-      </div>
-    )}
-  </div>
-));
 
-const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserModalProps) => {
+
+const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: CreateUserModalProps) => {
   const [formData, setFormData] = useState<Partial<UserType>>({
     name: "",
     email: "",
     phone: "",
-    dateOfBirth: "",
-    subject: "",
-    experience: undefined,
-    role: ROLE.STUDENT,
+    password: "",
+    role: roleUser,
     ...initialData,
   });
 
@@ -122,8 +72,9 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  // Sử dụng useCallback để tránh tạo function mới mỗi lần render
   const validateField = useCallback((name: string, value: any, currentRole: ROLE): string | undefined => {
+    console.log("currentRole::", currentRole);
+    
     switch (name) {
       case "name":
         if (!value || value.trim().length === 0) return "Họ tên không được để trống";
@@ -142,25 +93,30 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
         const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
         if (!phoneRegex.test(value.replace(/\s/g, ""))) return "Số điện thoại không đúng định dạng (VD: 0912345678)";
         return undefined; }
+      
+      case "password":
+        { if (!value || value.trim().length === 0) return "Mật khẩu không đúng";
+          if (value.trim().length <= 5) return "Mật khẩu tối thiểu 6 ký tự";
+        return undefined; }
 
-      case "dateOfBirth":
-        if (value) {
-          const birthDate = new Date(value);
-          const today = new Date();
-          const age = today.getFullYear() - birthDate.getFullYear();
-          if (age < 5 || age > 100) return "Tuổi phải từ 5 đến 100";
-        }
-        return undefined;
+      // case "dateOfBirth":
+      //   if (value) {
+      //     const birthDate = new Date(value);
+      //     const today = new Date();
+      //     const age = today.getFullYear() - birthDate.getFullYear();
+      //     if (age < 5 || age > 100) return "Tuổi phải từ 5 đến 100";
+      //   }
+      //   return undefined;
 
-      case "subject":
-        if (currentRole === ROLE.TEACHER && (!value || value.trim().length === 0)) return "Giáo viên phải có môn giảng dạy";
-        if (value && value.length > 100) return "Môn học không được vượt quá 100 ký tự";
-        return undefined;
+      // case "subject":
+      //   if (currentRole === ROLE.TEACHER && (!value || value.trim().length === 0)) return "Giáo viên phải có môn giảng dạy";
+      //   if (value && value.length > 100) return "Môn học không được vượt quá 100 ký tự";
+      //   return undefined;
 
-      case "experience":
-        if (currentRole === ROLE.TEACHER && !value) return "Giáo viên phải có kinh nghiệm";
-        if (value !== undefined && (value < 0 || value > 50)) return "Kinh nghiệm phải từ 0 đến 50 năm";
-        return undefined;
+      // case "experience":
+      //   if (currentRole === ROLE.TEACHER && !value) return "Giáo viên phải có kinh nghiệm";
+      //   if (value !== undefined && (value < 0 || value > 50)) return "Kinh nghiệm phải từ 0 đến 50 năm";
+      //   return undefined;
 
       default:
         return undefined;
@@ -219,9 +175,6 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
       name: true,
       email: true,
       phone: true,
-      dateOfBirth: true,
-      subject: true,
-      experience: true,
     });
 
     return isValid;
@@ -229,34 +182,18 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
 
   const handleSubmit = useCallback(() => {
     if (!validateForm()) return;
-
     setIsSubmitting(true);
+    setSubmitSuccess(true);
 
-    // setTimeout(() => {
-    //   console.log("User created:", formData);
-    //   setIsSubmitting(false);
-      setSubmitSuccess(true);
+    if (onSubmit) {
+      onSubmit(formData as any);
+    }
 
-      if (onSubmit) {
-        onSubmit(formData as any);
-      }
-
-    //   setTimeout(() => {
-    //     setFormData({
-    //       name: "",
-    //       email: "",
-    //       phone: "",
-    //       dateOfBirth: "",
-    //       subject: "",
-    //       experience: undefined,
-    // //       role: ROLE.STUDENT,
-    // //     });
-    // //     setErrors({});
-    // //     setTouched({});
-    // //     setSubmitSuccess(false);
-    // //     onClose();
-    // //   }, 2000);
-    // }, 1500);
+    setFormData({name: "",email: "", phone: "", password: "", role: formData.role});
+    setErrors({});
+    setTouched({});
+    setSubmitSuccess(false);
+    onClose();
   }, [formData, validateForm, onSubmit, onClose]);
 
   const handleReset = useCallback(() => {
@@ -264,9 +201,6 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
       name: "",
       email: "",
       phone: "",
-      dateOfBirth: "",
-      subject: "",
-      experience: undefined,
       role: ROLE.STUDENT,
     });
     setErrors({});
@@ -289,7 +223,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
+        className={`fixed h-full inset-0 bg-black transition-opacity duration-300 z-40 ${
           isOpen ? 'opacity-50' : 'opacity-0'
         }`}
         onClick={onClose}
@@ -301,7 +235,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="p-6 md:p-8">
+        <div className="p-6 md:p-8 h-full">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -333,14 +267,16 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
           )}
 
           {/* Form */}
-          <div className="space-y-6">
+          <div className="space-y-6 h-3/4">
             {/* Role Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Vai trò <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-3">
-                {roleOptions.map((option) => (
+                {roleOptions
+                .filter(item=> item.value === roleUser)
+                .map((option) => (
                   <RoleButton
                     key={option.value}
                     option={option}
@@ -351,19 +287,34 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
               </div>
             </div>
 
-            {/* Name */}
-            <FormInput
-              label="Họ và tên"
-              name="name"
-              icon={UserCircle}
-              value={formData.name}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.name}
-              touched={touched.name}
-              required
-              placeholder="Nguyễn Văn A"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
+                label="Họ và tên"
+                name="name"
+                icon={UserCircle}
+                value={formData.name}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.name}
+                touched={touched.name}
+                required
+                placeholder="Nguyễn Văn A"
+              />
+
+              {/* MK */}
+              <FormInput
+                label="Mật khẩu"
+                name="password"
+                type="password"
+                icon={Lock}
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={errors.password}
+                touched={touched.password}
+                required
+              />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Email */}
@@ -393,27 +344,14 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
                 error={errors.phone}
                 touched={touched.phone}
                 required
-                placeholder="0912345678"
+                placeholder="0912345***"
               />
             </div>
 
-            {/* Date of Birth */}
-            <FormInput
-              label="Ngày sinh"
-              name="dateOfBirth"
-              type="date"
-              icon={Calendar}
-              value={formData.dateOfBirth}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={errors.dateOfBirth}
-              touched={touched.dateOfBirth}
-            />
-
-            {/* Teacher-specific fields */}
+            {/* Teacher-specific fields
             {formData.role === ROLE.TEACHER && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormInput
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
+                {/* <FormInput
                   label="Môn giảng dạy"
                   name="subject"
                   icon={BookOpen}
@@ -424,9 +362,9 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
                   touched={touched.subject}
                   required
                   placeholder="Toán học, Vật lý..."
-                />
+                /> */}
 
-                <FormInput
+                {/* <FormInput
                   label="Kinh nghiệm (năm)"
                   name="experience"
                   type="number"
@@ -440,13 +378,13 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData }: CreateUserM
                   placeholder="5"
                   min="0"
                   max="50"
-                />
-              </div>
-            )}
+                /> */}
+              {/* </div> */}
+            {/* )} */}
           </div>
 
           {/* Actions */}
-          <div className="mt-8 flex gap-3 sticky bottom-0 bg-white pt-4 border-t">
+          <div className="mt-8 flex gap-3 sticky bottom-0 bg-white pt-4">
             <button
               type="button"
               onClick={handleReset}

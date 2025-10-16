@@ -26,30 +26,29 @@ export const deleteUser = async (id: string) => {
   return response.data as { status: number; data: any };
 };
 
-export const createStudent = async (studentData: {
+export const createUser = async (data: {
   name: string;
   email: string;
   phone: string;
-  studentId: string;
-  dateOfBirth: string;
+  password: string;
   role: string;
 }) => {
-  const response = await api.post("/user/students", studentData);
+  const response = await api.post("/user/create-by-admin", data);
   return response.data as { success: boolean; data: User; message?: string };
 };
 
-export const createTeacher = async (teacherData: {
-  name: string;
-  email: string;
-  phone: string;
-  teacherId: string;
-  dateOfBirth: string;
-  subject: string;
-  experience: number;
-  role: string;
-}) => {
-  const response = await api.post("/user/teachers", teacherData);
-  return response.data as { success: boolean; data: User; message?: string };
-};
+// export const createTeacher = async (teacherData: {
+//   name: string;
+//   email: string;
+//   phone: string;
+//   teacherId: string;
+//   dateOfBirth: string;
+//   subject: string;
+//   experience: number;
+//   role: string;
+// }) => {
+//   const response = await api.post("/user/teachers", teacherData);
+//   return response.data as { success: boolean; data: User; message?: string };
+// };
 
 
