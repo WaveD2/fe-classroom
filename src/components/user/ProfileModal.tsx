@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, User, Mail, Calendar, Shield, Edit3, Save, XCircle } from 'lucide-react';
+import { X, User, Mail, Calendar, Shield, Edit3, Save, XCircle, Phone } from 'lucide-react';
 import { User as UserType, ROLE } from '../../types';
 import { showSuccess, showError } from '../Toast';
+import { AvatarUpload } from '../common/ImgUpload';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -19,18 +20,24 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email
+    name: user?.name,
+    email: user?.email,
+    avatar: user?.avatar,
+    phone: user?.phone
   });
+  const [uploadedAvatar, setUploadedAvatar] = useState<any>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        name: user.name,
-        email: user.email
+        name: user?.name,
+        email: user?.email,
+        avatar: user?.avatar,
+        phone: user?.phone
       });
       setIsEditing(false);
+      setUploadedAvatar(null);
     }
   }, [isOpen, user]);
 
@@ -38,13 +45,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
+        handleClose();
       }
     };
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     }
 
@@ -52,13 +58,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Handle escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
+        handleClose();
       }
     };
 
@@ -69,13 +75,36 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  const handleClose = () => {
+    if (isEditing) {
+      // Nếu đang chỉnh sửa, confirm trước khi đóng
+      if (confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn đóng?')) {
+        setIsEditing(false);
+        setUploadedAvatar(null);
+        onClose();
+      }
+    } else {
+      onClose();
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleAvatarUploadSuccess = (file: any) => {
+    console.log('Avatar uploaded:', file);
+    setUploadedAvatar(file);
+    // Cập nhật preview avatar ngay lập tức
+    setFormData(prev => ({
+      ...prev,
+      avatar: file.url
     }));
   };
 
@@ -87,11 +116,22 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
     setIsLoading(true);
     try {
-      await onUpdateProfile(formData);
+      const updateData: Partial<UserType> = {
+        name: formData.name,
+        email: formData.email,
+      };
+
+      if (uploadedAvatar) {
+        updateData.avatar = uploadedAvatar.url;
+      }
+
+      await onUpdateProfile(updateData);
       setIsEditing(false);
+      setUploadedAvatar(null);
       showSuccess('Cập nhật thông tin thành công');
     } catch (error) {
       showError('Có lỗi xảy ra khi cập nhật thông tin');
+      console.error('Update error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -100,8 +140,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   const handleCancel = () => {
     setFormData({
       name: user.name,
-      email: user.email
+      email: user.email,
+      avatar: user.avatar,
+      phone: user.phone
     });
+    setUploadedAvatar(null);
     setIsEditing(false);
   };
 
@@ -133,6 +176,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
   if (!isOpen) return null;
 
+  const avatarUrl = formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=120`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div
@@ -151,7 +196,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -163,21 +208,31 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
           {/* Avatar Section */}
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
             <div className="relative">
-              <img
-                src={`https://ui-avatars.com/api/?name=${user.name.replace(" ", "+")}&background=random&size=120`}
-                alt="Avatar"
-                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg"
+              <AvatarUpload
+                size="lg"
+                defaultValue={avatarUrl}
+                onUploadSuccess={handleAvatarUploadSuccess}
+                onUploadError={(error) => {
+                  console.error('Avatar upload error:', error);
+                  showError(error);
+                }}
+                disabled={!isEditing}
               />
               <div className={`absolute -bottom-2 -right-2 px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                 {getRoleDisplayName(user.role)}
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{user.name}</h3>
-              <p className="text-gray-600 mb-1">{user.email}</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">{formData.name}</h3>
+              <p className="text-gray-600 mb-1">{formData.email}</p>
               <p className="text-sm text-gray-500">
                 Tham gia từ {new Date(user.createdAt).toLocaleDateString('vi-VN')}
               </p>
+              {isEditing && uploadedAvatar && (
+                <p className="text-xs text-green-600 mt-2">
+                  ✓ Avatar mới đã được chọn
+                </p>
+              )}
             </div>
           </div>
 
@@ -185,7 +240,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
           <div className="space-y-6">
             {/* Name Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="flex text-sm font-medium text-gray-700 mb-2">
                 <User className="w-4 h-4 inline mr-2" />
                 Họ và tên
               </label>
@@ -207,7 +262,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="flex text-sm font-medium text-gray-700 mb-2">
                 <Mail className="w-4 h-4 inline mr-2" />
                 Email
               </label>
@@ -227,9 +282,29 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               )}
             </div>
 
-            {/* Role Field (Read-only) */}
+            <div className=''>
+              <label className="flex text-sm font-medium text-gray-700 mb-2">
+                <Phone className="w-4 h-4 inline mr-2" />
+                <span>Số điện thoại</span>
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3  border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
+                  placeholder="Nhập số điện thoại"
+                />
+              ) : (
+                <div className="px-4 py-3 min-h-[45px] bg-gray-50 rounded-lg text-gray-900">
+                  {user.phone}
+                </div>
+              )}
+            </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="flex text-sm font-medium text-gray-700 mb-2">
                 <Shield className="w-4 h-4 inline mr-2" />
                 Vai trò
               </label>
@@ -240,9 +315,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               </div>
             </div>
 
-            {/* Join Date Field (Read-only) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="flex text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="w-4 h-4 inline mr-2" />
                 Ngày tham gia
               </label>
@@ -285,7 +359,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
           ) : (
             <>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 sm:flex-none px-4 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Đóng

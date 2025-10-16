@@ -60,7 +60,7 @@ const TeacherDetailModal = ({ isOpen, onClose, teacher }: {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                     <div className="relative">
                       <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(teacher?.name || "T")}&background=random&size=120`}
+                        src={teacher?.avatar ||`https://ui-avatars.com/api/?name=${encodeURIComponent(teacher?.name || "T")}&background=random&size=120`}
                         alt="avatar"
                         className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-lg"
                       />

@@ -32,7 +32,8 @@ export const useFileUpload = (): UseFileUploadReturn => {
     const result = await uploadFile(file, setProgress);
 
     setUploading(false);
-
+    console.log("result:::", result);
+    
     if (result.success && result.data) {
       setUploadedFile(result.data);
     } else {

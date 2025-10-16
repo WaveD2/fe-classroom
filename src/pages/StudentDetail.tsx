@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, User, Mail, Phone, Calendar, GraduationCap, BookOpen, TrendingUp, Clock, Award, Activity } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Calendar, GraduationCap, BookOpen, TrendingUp, Clock, Award, Activity, Edit, DeleteIcon } from "lucide-react";
 import { User as UserType } from "../types";
-import { getStudentById } from "../api/user";
+import { deleteUser, getStudentById } from "../api/user";
+import ProfileModal from "../components/user/ProfileModal";
+import ConfirmModal from "../components/common/ConfirmModal";
+import { updateProfile } from "../api/auth";
 
 export default function StudentDetailPage() {
   const { id } = useParams();
@@ -11,6 +14,8 @@ export default function StudentDetailPage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [summary, setSummary] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -31,26 +36,55 @@ export default function StudentDetailPage() {
     return () => { mounted = false; };
   }, [id]);
 
+   const handleUpdateProfile = async (userData: Partial<UserType>) => {
+      const response = await updateProfile(userData);
+      if (response?.data) {
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const updatedUser = { ...currentUser, ...response.data.data };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(response.data.data)
+      }
+      return response;
+    };
+  
+    const handleDelete = (async () => {
+      if (user?.name) {
+        await deleteUser(user._id || user.id);
+        setShowDeleteModal(false);
+      }
+    });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Quay lại</span>
-            </button>
-            <div className="h-6 w-px bg-gray-300" />
-            <h1 className="text-xl font-semibold text-gray-900">Chi tiết học sinh</h1>
-          </div>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 text-gray-700 hover:text-blue-600 transition-all duration-200"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Quay lại</span>
+        </button>
+
+        <div className="space-x-2">
+          <button
+            onClick={() => setShowProfileModal(true) }
+            className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-xl shadow-sm cursor-pointer border border-gray-200 hover:shadow-md hover:border-blue-300 text-gray-700 hover:text-blue-600 transition-all duration-200"
+          >
+            <Edit className="w-4 h-4" />
+            <span>Chỉnh sửa</span>
+          </button>
+          <button
+            onClick={() =>  setShowDeleteModal(true)}
+            className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-red-400 rounded-xl shadow-sm border cursor-pointer border-gray-200 hover:shadow-md text-gray-100 transition-all duration-200"
+          >
+            <DeleteIcon className="w-4 h-4" />
+            <span>Xóa</span>
+          </button>
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="space-y-8">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-4">
@@ -66,7 +100,7 @@ export default function StudentDetailPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                   <div className="relative">
                     <img
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=120`}
+                      src={ user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=120`}
                       alt="avatar"
                       className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-lg"
                     />
@@ -322,6 +356,22 @@ export default function StudentDetailPage() {
           </div>
         )}
       </div>
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user as UserType}
+        onUpdateProfile={handleUpdateProfile}
+      />
+
+      <ConfirmModal
+        open={showDeleteModal}
+        type="warning"
+        title="Xác nhận xóa giáo viên"
+        message={`Bạn có chắc chắn muốn xóa giáo viên"${user?.name}" không? Các lớp của giáo viên tham gia sẽ trống giáo viên. Hành động này không thể hoàn tác.`}
+        onClose={()=> setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

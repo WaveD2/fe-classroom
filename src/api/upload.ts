@@ -12,7 +12,7 @@ export const uploadFile = async (
 
   try {
     const { data } = await api.post<UploadResponse>(
-      `${UPLOAD_CONFIG.API_URL}/upload`,
+      "/upload",
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },

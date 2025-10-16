@@ -285,7 +285,7 @@ const ClassMembersModal: React.FC<ClassMembersModalProps> = ({
                         }`}
                       >
                         <img
-                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=32`}
+                          src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=32`}
                           alt="avatar"
                           className="w-8 h-8 rounded-full"
                         />
@@ -324,7 +324,7 @@ const ClassMembersModal: React.FC<ClassMembersModalProps> = ({
                       >
                         <div className="flex items-center gap-4 min-w-0 flex-1">
                           <img
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=48`}
+                            src={user?.avatar ||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=48`}
                             alt="avatar"
                             className="w-12 h-12 rounded-full flex-shrink-0"
                           />

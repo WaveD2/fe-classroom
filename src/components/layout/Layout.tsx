@@ -221,7 +221,7 @@ function Header({
           className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100"
           onClick={() => setOpenMenu((prev) => !prev)}
         >
-          <img src={`https://ui-avatars.com/api/?name=${user?.name?.replace(" ", "+")}&background=random`} alt="avatar" className="w-9 h-9 rounded-full border" />
+          <img src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name?.replace(" ", "+")}&background=random`} alt="avatar" className="w-9 h-9 rounded-full border" />
           <div className="hidden sm:flex flex-col items-start">
             <span className="text-sm font-medium text-gray-800">{user.name}</span>
             <span className="text-xs text-gray-500">{user.email}</span>
@@ -229,7 +229,7 @@ function Header({
         </button>
 
         {openMenu && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border p-2 z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-300 cursor-pointer p-2 z-50">
             <button
               className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
               onClick={() => {

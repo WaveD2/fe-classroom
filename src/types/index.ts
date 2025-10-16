@@ -4,6 +4,11 @@ export enum ROLE {
     ADMIN = 'admin'
 }
 
+export enum STATUS_USER {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 export enum STATUS_CLASS {
     OPEN = 'open',
     CLOSED = 'close'
@@ -35,6 +40,8 @@ export interface User {
     role: ROLE.STUDENT | ROLE.TEACHER | ROLE.ADMIN;
     attendanceCount: number;
     attendanceRate: number;
+    avatar?: string;
+    status?: STATUS_USER.ACTIVE | STATUS_USER.INACTIVE;
     attendanceTimes: string[];
 }
 
@@ -212,12 +219,15 @@ export interface ClassFilter {
 export type FileType = 'image' | 'document';
 
 export interface UploadedFile {
+  _id: string;
+    id: string;
   public_id: string;
   url: string;
   format: string;
   size: number;
   type: FileType;
   created_at: string;
+  name: string;
 }
 
 export interface UploadResponse {
@@ -236,12 +246,7 @@ export interface MultipleUploadResponse {
 export type WelcomeMessage = BaseMessage<{ message: string }>;
 export type UserLoginMessage = BaseMessage<{ user: User }>;
 
-// ===================================
-// GRADE MANAGEMENT TYPES
-// Cập nhật theo API documentation
-// ===================================
-
-// Grade entity - Điểm của học sinh
+ 
 export interface Grade {
   _id: string;
   classId: string;
@@ -265,7 +270,6 @@ export interface Grade {
   createdAt?: string;
 }
 
-// Grade data for partial updates
 export interface GradeData {
   attendance?: number;
   homework?: number;
@@ -273,30 +277,22 @@ export interface GradeData {
   final?: number;
 }
 
-// Grade filter for queries
 export interface GradeFilter {
   page?: number;
   limit?: number;
   studentId?: string;
 }
 
-// ===================================
-// API RESPONSE TYPES
-// ===================================
-
-// Response for update/create grade component (API 1)
 export interface UpdateGradeComponentResponse {
   message: string;
   data: Grade;
 }
 
-// Response for calculate final grade for 1 student (API 2)
 export interface CalculateFinalGradeResponse {
   message: string;
   data: Grade;
 }
 
-// Response for calculate final grade for class (API 3)
 export interface CalculateFinalGradeClassResponse {
   message: string;
   data: {
@@ -305,7 +301,6 @@ export interface CalculateFinalGradeClassResponse {
   };
 }
 
-// Response for get student grade (API 4)
 export interface StudentGradeResponse {
   message: string;
   data: {
@@ -329,7 +324,6 @@ export interface StudentGradeResponse {
   };
 }
 
-// Response for get class grades list (API 5)
 export interface ClassGradesResponse {
   message: string;
   data: {
@@ -343,7 +337,6 @@ export interface ClassGradesResponse {
   };
 }
 
-// Response for get class grade statistics (API 6)
 export interface ClassGradeStatisticsResponse {
   message: string;
   data: {
@@ -376,7 +369,15 @@ export interface ClassGradeStatisticsResponse {
   };
 }
 
-// Response for delete grade (API 7)
 export interface DeleteGradeResponse {
   message: string;
+}
+
+export interface FileValidation {
+  maxSize: number; // in bytes
+  acceptedTypes: string[];
+  errorMessages?: {
+    type?: string;
+    size?: string;
+  };
 }

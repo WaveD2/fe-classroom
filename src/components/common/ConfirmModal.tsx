@@ -40,7 +40,6 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   disableCloseOnOutsideClick = false,
 }) => {
-  // Đóng modal khi nhấn ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();

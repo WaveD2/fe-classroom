@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { User } from "../types";
-import { getTeacherById } from "../api/user";
+import { deleteUser, getTeacherById } from "../api/user";
 import LazyLoad from "../components/loading/LazyLoad";
 import { 
   ArrowLeft, 
@@ -12,8 +12,13 @@ import {
   BookOpen, 
   BarChart3,
   Clock,
-  UserCheck
+  UserCheck,
+  Edit,
+  DeleteIcon
 } from "lucide-react";
+import ProfileModal from "../components/user/ProfileModal";
+import { updateProfile } from "../api/auth";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 export default function TeacherDetailPage() {
   const { id } = useParams();
@@ -22,6 +27,9 @@ export default function TeacherDetailPage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [summary, setSummary] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
   useEffect(() => {
     let mounted = true;
@@ -41,17 +49,53 @@ export default function TeacherDetailPage() {
     if (id) fetchUser();
     return () => { mounted = false; };
   }, [id]);
+  
+  const handleUpdateProfile = async (userData: Partial<User>) => {
+    const response = await updateProfile(userData);
+    if (response?.data) {
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { ...currentUser, ...response.data.data };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(response.data.data)
+    }
+    return response;
+  };
+
+  const handleDelete = (async () => {
+    if (user?.name) {
+      await deleteUser(user._id || user.id);
+      setShowDeleteModal(false);
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 lg:p-8">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 text-gray-700 hover:text-blue-600 transition-all duration-200"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Quay lại</span>
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 text-gray-700 hover:text-blue-600 transition-all duration-200"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Quay lại</span>
+        </button>
+
+        <div className="space-x-2">
+          <button
+            onClick={() => setShowProfileModal(true) }
+            className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-xl shadow-sm cursor-pointer border border-gray-200 hover:shadow-md hover:border-blue-300 text-gray-700 hover:text-blue-600 transition-all duration-200"
+          >
+            <Edit className="w-4 h-4" />
+            <span>Chỉnh sửa</span>
+          </button>
+          <button
+            onClick={() =>  setShowDeleteModal(true)}
+            className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-red-400 rounded-xl shadow-sm border cursor-pointer border-gray-200 hover:shadow-md text-gray-100 transition-all duration-200"
+          >
+            <DeleteIcon className="w-4 h-4" />
+            <span>Xóa</span>
+          </button>
+        </div>
+      </div>
 
       {loading ? (
         <LazyLoad delay={500}>
@@ -205,6 +249,22 @@ export default function TeacherDetailPage() {
           <p className="text-gray-500">Thông tin giáo viên không tồn tại hoặc đã bị xóa</p>
         </div>
       )}
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user as User}
+        onUpdateProfile={handleUpdateProfile}
+      />
+
+      <ConfirmModal
+        open={showDeleteModal}
+        type="warning"
+        title="Xác nhận xóa giáo viên"
+        message={`Bạn có chắc chắn muốn xóa giáo viên"${user?.name}" không? Các lớp của giáo viên tham gia sẽ trống giáo viên. Hành động này không thể hoàn tác.`}
+        onClose={()=> setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

@@ -97,7 +97,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
                   }`}
                 >
                   <img
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=32`}
+                    src={ user?.avatar ||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=32`}
                     alt="avatar"
                     className="w-8 h-8 rounded-full"
                   />
