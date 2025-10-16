@@ -32,7 +32,7 @@ const GradeManagement = memo(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
-  
+ 
   const [classes, setClasses] = useState<ClassI[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedClassDetail, setSelectedClassDetail] = useState<ClassI | null>(null);
@@ -270,7 +270,7 @@ const GradeManagement = memo(() => {
               <select
                 value={selectedClassId}
                 onChange={(e) => handleClassChange(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+                className="flex-1 px-4 py-2 border outline-0 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
               >
                 {classes.map((classItem) => (
                   <option key={classItem._id || classItem.id} value={classItem._id || classItem.id}>

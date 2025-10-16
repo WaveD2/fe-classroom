@@ -53,9 +53,6 @@ const clearCacheByPrefix = (prefix: string): void => {
   });
 };
 
-// ===================================
-// HOOK: useGrades - Quản lý danh sách điểm lớp
-// ===================================
 export const useGrades = (classId: string, filter?: GradeFilter) => {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,7 +64,6 @@ export const useGrades = (classId: string, filter?: GradeFilter) => {
     totalPages: 0
   });
 
-  // Track if component is mounted to prevent state updates after unmount
   const isMounted = useRef(true);
 
   useEffect(() => {

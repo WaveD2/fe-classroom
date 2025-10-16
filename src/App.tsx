@@ -14,7 +14,7 @@ import ClassManagement from "./pages/ClassManagement";
 import GradeManagement from "./pages/GradeManagement";
 import Layout from "./components/layout/Layout";
 import ErrorBoundary from "./components/common/ErrorBoundary";
-import { User } from "./types";
+import {  User } from "./types";
 import { ToastContainer } from 'react-toastify';
 
 function ProtectedRoute({ user, children }: { user: User | null; children: JSX.Element }) {
@@ -60,7 +60,7 @@ function AppContent() {
           <Route path="teacher" element={<TeachersPage userRole={user?.role || ""} />} />
           <Route path="teacher/:id" element={<TeacherDetailPage />} />
           <Route path="class" element={<ClassManagement userRole={user?.role || ""} />} />
-          <Route path="grades" element={<GradeManagement />} />
+         <Route path="grades" element={<GradeManagement />} />
         </Route>
 
         <Route path="*" element={<Error />} />

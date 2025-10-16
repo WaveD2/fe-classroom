@@ -3,7 +3,7 @@ import { MoreHorizontal, Calendar, Users, GraduationCap, Edit2, Trash2 } from "l
 import Card from "../common/Card";
 import EditClassModal from "./EditClassModal";
 import ConfirmModal from "../common/ConfirmModal";
-import { ClassI, STATUS_CLASS } from "../../types";
+import { ClassI, ROLE, STATUS_CLASS } from "../../types";
 
 
 const ClassGrid = ({ classes, onClassClick, onUpdateClass, onDeleteClass }: any) => {
@@ -11,6 +11,7 @@ const ClassGrid = ({ classes, onClassClick, onUpdateClass, onDeleteClass }: any)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,61 +68,65 @@ const ClassGrid = ({ classes, onClassClick, onUpdateClass, onDeleteClass }: any)
               className="relative p-6 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group border border-gray-100 hover:border-blue-200"
               onClick={() => onClassClick(cls)}
             >
-              <div
-                className="absolute top-4 right-4 z-20"
-                //@ts-ignore
-                ref={(el) => (menuRefs.current[id] = el)}
-              >
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setOpenMenuId(openMenuId === id ? null : id);
-                  }}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
-                    openMenuId === id
-                      ? "bg-gray-200 text-gray-700"
-                      : "bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <MoreHorizontal size={18} />
-                </button>
-
-                {/* Dropdown menu */}
-                {openMenuId === id && (
+              {
+                user.role === ROLE.ADMIN && (
                   <div
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50"
-                    style={{
-                      animation: "fadeInScale 0.15s ease-out",
-                    }}
-                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-4 right-4 z-20"
+                    //@ts-ignore
+                    ref={(el) => (menuRefs.current[id] = el)}
                   >
                     <button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        openModal("edit", cls);
+                        setOpenMenuId(openMenuId === id ? null : id);
                       }}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors flex items-center gap-3 text-sm font-medium"
+                      className={`p-2 rounded-lg transition-all duration-200 ${
+                        openMenuId === id
+                          ? "bg-gray-200 text-gray-700"
+                          : "bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+                      }`}
                     >
-                      <Edit2 size={16} className="text-blue-600" />
-                      <span>Chỉnh sửa</span>
+                      <MoreHorizontal size={18} />
                     </button>
-                    <div className="border-t border-gray-100"></div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        openModal("delete", cls);
-                      }}
-                      className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 text-sm font-medium"
-                    >
-                      <Trash2 size={16} />
-                      <span>Xóa lớp</span>
-                    </button>
+
+                    {/* Dropdown menu */}
+                    {openMenuId === id && (
+                      <div
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50"
+                        style={{
+                          animation: "fadeInScale 0.15s ease-out",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openModal("edit", cls);
+                          }}
+                          className="w-full text-left px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors flex items-center gap-3 text-sm font-medium"
+                        >
+                          <Edit2 size={16} className="text-blue-600" />
+                          <span>Chỉnh sửa</span>
+                        </button>
+                        <div className="border-t border-gray-100"></div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openModal("delete", cls);
+                          }}
+                          className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 text-sm font-medium"
+                        >
+                          <Trash2 size={16} />
+                          <span>Xóa lớp</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                )
+              }
 
               {/* Card content */}
               <div className="pr-8">

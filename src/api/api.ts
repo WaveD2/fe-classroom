@@ -61,11 +61,9 @@ api.interceptors.response.use(
         const refreshToken = JSON.parse(
           String(localStorage.getItem("refreshToken"))
         );
-        const res = await axios.post("https://smashing-valid-jawfish.ngrok-free.app/api/auth/refresh", {
+        const res = await axios.post("https://smashing-valid-jawfish.ngrok-free.app/api/user/refresh", {
           refreshToken,
         });
-        console.log("res refresh::", res);
-        
         const newAccessToken = res.data.accessToken;
 
         localStorage.setItem("accessToken", JSON.stringify(newAccessToken));

@@ -137,7 +137,6 @@ export default function Layout() {
 function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
   const menu = [
     { to: "/", label: "Quản lý lớp", icon: <Home className="w-5 h-5" /> },
-    { to: "/grades", label: "Quản lý điểm sinh viên", icon: <Award className="w-5 h-5" /> },
   ]
   if(user.role === ROLE.ADMIN) {
     menu.push(
@@ -146,7 +145,13 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
       { to: "/class", label: "Thành viên lớp học", icon: <Home className="w-5 h-5" /> },
     )
   }
-
+  
+  if(user.role !== ROLE.STUDENT) {
+    menu.push(
+      { to: "/grades", label: "Quản lý điểm sinh viên", icon: <Award className="w-5 h-5" /> },
+    )
+  }
+  
   return (
     <>
       {sidebarOpen && (
