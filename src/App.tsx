@@ -16,6 +16,7 @@ import Layout from "./components/layout/Layout";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import {  User } from "./types";
 import { ToastContainer } from 'react-toastify';
+import ClassDetailView from './components/class/ClassDetailView';
 
 function ProtectedRoute({ user, children }: { user: User | null; children: JSX.Element }) {
   if (!user) {
@@ -59,6 +60,7 @@ function AppContent() {
           <Route path="student/:id" element={<StudentDetailPage />} />
           <Route path="teacher" element={<TeachersPage userRole={user?.role || ""} />} />
           <Route path="teacher/:id" element={<TeacherDetailPage />} />
+          <Route path="class/:id" element={<ClassDetailView userRole={user?.role || ""}/>} />
           <Route path="class" element={<ClassManagement userRole={user?.role || ""} />} />
          <Route path="grades" element={<GradeManagement />} />
         </Route>

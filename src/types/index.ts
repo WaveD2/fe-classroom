@@ -381,3 +381,76 @@ export interface FileValidation {
     size?: string;
   };
 }
+
+// Document Types
+export enum DOCUMENT_STATUS {
+  PUBLIC = 'public',
+  PRIVATE = 'private'
+}
+
+export enum DOCUMENT_TYPE {
+  PDF = 'pdf',
+  DOCX = 'docx',
+  DOC = 'doc',
+  XLSX = 'xlsx',
+  XLS = 'xls',
+  PPTX = 'pptx',
+  PPT = 'ppt',
+  ZIP = 'zip',
+  RAR = 'rar',
+  TXT = 'txt'
+}
+
+export interface Document extends DateTime {
+  _id: string;
+  id?: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  cloudinaryPublicId: string;
+  classId: string | {
+    _id: string;
+    name: string;
+    uniqueCode: string;
+  };
+  status: DOCUMENT_STATUS;
+  description?: string;
+  uploadBy: User | {
+    _id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  isDeleted: boolean;
+}
+
+export interface DocumentUploadRequest {
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  cloudinaryPublicId: string;
+  classId: string;
+  status: DOCUMENT_STATUS;
+  description?: string;
+}
+
+export interface DocumentFilter {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: DOCUMENT_STATUS;
+}
+
+export interface DocumentStatistics {
+  total: number;
+  publicCount: number;
+  privateCount: number;
+  totalSize: number;
+  documentsByType: {
+    _id: string;
+    count: number;
+    totalSize: number;
+  }[];
+}

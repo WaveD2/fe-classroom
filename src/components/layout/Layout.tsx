@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { Home, Menu, LogOut, User as UserIcon, Award } from "lucide-react";
+import { Home, Menu, LogOut, User as UserIcon, Award, DownloadCloudIcon } from "lucide-react";
 import { useState } from "react";
 import {  ROLE, User } from "../../types";
 import { logout, updateProfile } from "../../api/auth";
@@ -149,6 +149,7 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
   if(user.role !== ROLE.STUDENT) {
     menu.push(
       { to: "/grades", label: "Quản lý điểm sinh viên", icon: <Award className="w-5 h-5" /> },
+      { to: "/document", label: "Quản lý tài liệu", icon: <DownloadCloudIcon className="w-5 h-5" /> },
     )
   }
   

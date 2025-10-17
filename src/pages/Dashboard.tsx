@@ -5,7 +5,6 @@ import {
   QrCode,
   ArrowRight
 } from 'lucide-react';
-import ClassDetailView from '../components/class/ClassDetailView';
 import Button from '../components/common/Button';
 import SearchBar from '../components/common/Search';
 import ClassGrid from '../components/class/ClassGrid';
@@ -16,12 +15,15 @@ import { createClass, deleteClass, getClass, getClassByAdmin, updateClass } from
 import { showError, showSuccess } from '../components/Toast';
 import ClassStats from '../components/class/ClassStats';
 import ClassFormModal from '../components/class/ClassFormModal';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = memo(({ userRole }: { userRole: string }) => {
+
+  const navigate = useNavigate();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showCreateClass, setShowCreateClass] = useState(false); 
-  const [selectedClass, setSelectedClass] = useState<ClassI | null>(null);
   const [classes, setClasses] = useState<ClassI[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
@@ -123,15 +125,6 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
     }
   }, [fetchClassesData, pagination.page, searchTerm]);
 
-  if (selectedClass) {
-    return (
-      <ClassDetailView
-        classData={selectedClass}
-        userRole={userRole}
-        onBack={() => setSelectedClass(null)}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -233,7 +226,7 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
             <div className="flex-1 min-h-0">
               <ClassGrid
                 classes={classes}
-                onClassClick={setSelectedClass}
+                onClassClick={(cls: ClassI) => navigate(`/class/${cls._id}`)}
                 onUpdateClass={handleUpdateClass}
                 onDeleteClass={handleDeleteClass}
               />

@@ -11,47 +11,9 @@ import {
   CalculateFinalGradeResponse
 } from '../types';
 import * as gradeApi from '../api/grade';
+import { clearCacheByPrefix, deleteCacheByKey, getCacheKey, getFromCache, setToCache } from '../utils/core';
 
-// ===================================
-// CACHING MECHANISM
-// ===================================
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-}
-
-const gradeCache = new Map<string, CacheEntry<any>>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-const getCacheKey = (key: string, params?: Record<string, any>): string => {
-  if (!params) return key;
-  return `${key}-${JSON.stringify(params)}`;
-};
-
-const getFromCache = <T,>(key: string): T | null => {
-  const cached = gradeCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data as T;
-  }
-  gradeCache.delete(key);
-  return null;
-};
-
-const setToCache = <T,>(key: string, data: T): void => {
-  gradeCache.set(key, {
-    data,
-    timestamp: Date.now()
-  });
-};
-
-const clearCacheByPrefix = (prefix: string): void => {
-  const keys = Array.from(gradeCache.keys());
-  keys.forEach(key => {
-    if (key.startsWith(prefix)) {
-      gradeCache.delete(key);
-    }
-  });
-};
+ 
 
 export const useGrades = (classId: string, filter?: GradeFilter) => {
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -145,7 +107,6 @@ export const useGrades = (classId: string, filter?: GradeFilter) => {
 
       if (!isMounted.current) return response;
 
-      // Update with actual server response
       setGrades(prevGrades => {
         const gradeExists = prevGrades.some(g => g.studentId._id === studentId);
         
@@ -154,26 +115,22 @@ export const useGrades = (classId: string, filter?: GradeFilter) => {
             grade.studentId._id === studentId ? response.data : grade
           );
         } else {
-          // If grade doesn't exist, add it
           return [...prevGrades, response.data];
         }
       });
 
-      // Clear cache to ensure fresh data on next fetch
       clearCacheByPrefix(`grades-${classId}`);
 
       return response;
     } catch (err: any) {
       if (!isMounted.current) throw err;
 
-      // Revert optimistic update on error
       setGrades(previousGrades);
       setError(err.message);
       throw err;
     }
   }, [classId, grades]);
 
-  // Calculate final grade for one student
   const calculateFinalGrade = useCallback(async (studentId: string) => {
     try {
       const response: CalculateFinalGradeResponse = await gradeApi.calculateFinalGrade(
@@ -252,7 +209,6 @@ export const useGrades = (classId: string, filter?: GradeFilter) => {
     }
   }, [classId, grades]);
 
-  // Fetch grades on mount and when dependencies change
   useEffect(() => {
     fetchGrades();
   }, [classId, filter?.page, filter?.limit, filter?.studentId]);
@@ -348,7 +304,7 @@ export const useStudentGrade = (classId: string, studentId: string) => {
       });
 
       // Clear cache
-      gradeCache.delete(cacheKey);
+      deleteCacheByKey(cacheKey);
       clearCacheByPrefix(`grades-${classId}`);
 
       return response;
@@ -381,7 +337,7 @@ export const useStudentGrade = (classId: string, studentId: string) => {
       });
 
       // Clear cache
-      gradeCache.delete(cacheKey);
+      deleteCacheByKey(cacheKey);
       clearCacheByPrefix(`grades-${classId}`);
 
       return response;
