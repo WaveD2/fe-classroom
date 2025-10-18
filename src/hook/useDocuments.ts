@@ -145,3 +145,4 @@ export const useDocumentStatistics = (classId: string) => {
     refetch: fetchStatistics,
   };
 };
+
