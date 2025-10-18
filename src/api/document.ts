@@ -4,7 +4,6 @@ import type {
   DocumentUploadRequest, 
   DocumentFilter, 
   DocumentStatistics,
-  PaginatedResponse 
 } from "../types";
 
 // Upload document
