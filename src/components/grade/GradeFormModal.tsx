@@ -446,7 +446,7 @@ const GradeFormModal = memo(({
                           step="0.1"
                           value={formData[key as keyof GradeData] ?? ''}
                           onChange={(e) => handleFieldChange(key as keyof GradeData, e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          className={`w-full outline-0 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                             errors[key] ? 'border-red-300' : 'border-gray-300'
                           }`}
                           placeholder="0.0 - 10.0"

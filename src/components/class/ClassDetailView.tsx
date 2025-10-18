@@ -329,7 +329,7 @@ const ClassDetailView = ({ userRole }: {
               { key: "grades", label: "Điểm số", icon: Award, shortLabel: "Điểm" },
               { key: "statistics", label: "Thống kê điểm", icon: BarChart3, shortLabel: "TK" },
               { key: "documents", label: "Tài liệu", icon: DownloadCloudIcon, shortLabel: "TL" },
-              { key: "document-statistics", label: "Thống kê TL", icon: PieChart, shortLabel: "TKTL" },
+              // { key: "document-statistics", label: "Thống kê TL", icon: PieChart, shortLabel: "TKTL" },
               ...(userRole === ROLE.TEACHER ? [{ key: "qr", label: "Lịch sử QR", icon: History, shortLabel: "QR" }] : []),
             ].map((tab) => (
               <button

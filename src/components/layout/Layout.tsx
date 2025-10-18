@@ -149,7 +149,7 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
   if(user.role !== ROLE.STUDENT) {
     menu.push(
       { to: "/grades", label: "Quản lý điểm sinh viên", icon: <Award className="w-5 h-5" /> },
-      { to: "/document", label: "Quản lý tài liệu", icon: <DownloadCloudIcon className="w-5 h-5" /> },
+      // { to: "/document", label: "Quản lý tài liệu", icon: <DownloadCloudIcon className="w-5 h-5" /> },
     )
   }
   
