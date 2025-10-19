@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { Home, Menu, LogOut, User as UserIcon, Award, DownloadCloudIcon } from "lucide-react";
+import { Home, Menu, LogOut, User as UserIcon, Award } from "lucide-react";
 import { useState } from "react";
 import {  ROLE, User } from "../../types";
 import { logout, updateProfile } from "../../api/auth";

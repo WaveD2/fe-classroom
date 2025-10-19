@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, memo } from "react";
 import { User, Mail, Phone, UserCircle, CheckCircle2, X, Lock } from "lucide-react";
 import { ROLE, User as UserType } from "../../types";
 import FormInput from "../common/FormInput";
+import { showError } from "../Toast";
 
 
 interface ValidationErrors {
@@ -16,7 +17,7 @@ interface ValidationErrors {
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (data: UserType) => void;
+  onSubmit:  (data: UserType) => Promise<any>;
   initialData?: Partial<UserType>;
   roleUser: ROLE;
 }
@@ -72,8 +73,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const validateField = useCallback((name: string, value: any, currentRole: ROLE): string | undefined => {
-    console.log("currentRole::", currentRole);
+  const validateField = useCallback((name: string, value: any): string | undefined => {
     
     switch (name) {
       case "name":
@@ -138,7 +138,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
       if (prev[name]) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: validateField(name, value, formData.role || ROLE.STUDENT),
+          [name]: validateField(name, value),
         }));
       }
       return prev;
@@ -150,7 +150,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
     setTouched((prev) => ({ ...prev, [name]: true }));
     setErrors((prev) => ({
       ...prev,
-      [name]: validateField(name, value, formData.role || ROLE.STUDENT),
+      [name]: validateField(name, value),
     }));
   }, [formData.role, validateField]);
 
@@ -163,7 +163,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
     let isValid = true;
 
     (Object.keys(formData) as Array<keyof UserType>).forEach((key) => {
-      const error = validateField(key, formData[key], formData.role || ROLE.STUDENT);
+      const error = validateField(key, formData[key]);
       if (error) {
         newErrors[key as keyof ValidationErrors] = error;
         isValid = false;
@@ -180,20 +180,26 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
     return isValid;
   }, [formData, validateField]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback( async() => {
     if (!validateForm()) return;
     setIsSubmitting(true);
-    setSubmitSuccess(true);
 
-    if (onSubmit) {
-      onSubmit(formData as any);
+    try {
+      const res = await onSubmit(formData as any);
+      console.log("res::", res);
+      setFormData({name: "",email: "", phone: "", password: "", role: formData.role});
+      setErrors({});
+      setTouched({});
+      setSubmitSuccess(true);
+    } catch (error:any) {
+      if(error?.response?.data?.data){
+        showError(error?.response?.data?.data.message || "Có lỗi xảy ra");
+      }
+      setSubmitSuccess(false);
+    }finally{
+      setIsSubmitting(false);
     }
-
-    setFormData({name: "",email: "", phone: "", password: "", role: formData.role});
-    setErrors({});
-    setTouched({});
-    setSubmitSuccess(false);
-    onClose();
+    
   }, [formData, validateForm, onSubmit, onClose]);
 
   const handleReset = useCallback(() => {
@@ -211,7 +217,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
     if (typeof window !== 'undefined') {
       const width = window.innerWidth;
       if (width < 640) return 'w-full'; // Mobile: full width
-      if (width < 1024) return 'w-3/4'; // Tablet: 75%
+      if (width < 1024) return 'w-3/5'; // Tablet: 75%
       return 'w-1/2 max-w-3xl'; // Desktop: 50%, max 3xl
     }
     return 'w-1/2 max-w-3xl';
@@ -267,7 +273,7 @@ const CreateUserModal = ({ isOpen, onClose, onSubmit, initialData , roleUser }: 
           )}
 
           {/* Form */}
-          <div className="space-y-6 h-3/4">
+          <div className="space-y-6 h-3/5">
             {/* Role Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">

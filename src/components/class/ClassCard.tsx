@@ -14,7 +14,7 @@ interface ClassCardProps {
   classItem: ClassI;
   index: number;
   onManageClass: (classItem: ClassI) => void;
-  onDeleteClass: (classId: string) => void;
+  onDeleteClass: (classItem: ClassI) => void;
   onViewTeacher: (teacher: any) => void;
 }
 
@@ -30,7 +30,7 @@ const ClassCard = memo(({
   };
 
   const handleDeleteClick = () => {
-    onDeleteClass(classItem.id || classItem._id);
+    onDeleteClass(classItem);
   };
 
   const handleTeacherClick = () => {
@@ -71,7 +71,7 @@ const ClassCard = memo(({
 
       {/* Card Content */}
       <div className="p-4">
-        <div className="space-y-3">
+        <div className="space-y-3 min-h-24">
           <div className="flex items-center gap-3">
             <Users className="w-4 h-4 text-gray-400" />
             <p className="text-sm text-gray-600">{classItem.studentCount || 0} học sinh</p>

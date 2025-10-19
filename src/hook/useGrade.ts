@@ -8,7 +8,8 @@ import {
   GradeFilter,
   CalculateFinalGradeClassResponse,
   UpdateGradeComponentResponse,
-  CalculateFinalGradeResponse
+  CalculateFinalGradeResponse,
+  ClassGradeResponse
 } from '../types';
 import * as gradeApi from '../api/grade';
 import { clearCacheByPrefix, deleteCacheByKey, getCacheKey, getFromCache, setToCache } from '../utils/core';
@@ -17,6 +18,7 @@ import { clearCacheByPrefix, deleteCacheByKey, getCacheKey, getFromCache, setToC
 
 export const useGrades = (classId: string, filter?: GradeFilter) => {
   const [grades, setGrades] = useState<Grade[]>([]);
+  const [grade, setGrade] = useState<Grade>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -71,6 +73,45 @@ export const useGrades = (classId: string, filter?: GradeFilter) => {
 
       // Update cache
       setToCache(cacheKey, { grades: gradesData, pagination: paginationData });
+    } catch (err: any) {
+      if (!isMounted.current) return;
+      console.error('Error fetching grades:', err);
+      setError(err.message || 'Có lỗi xảy ra khi tải danh sách điểm');
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, [classId, filter, cacheKey, pagination]);
+
+  const fetchGradesStudent = useCallback(async (forceRefresh = false) => {
+    if (!classId) return;
+
+    if (!forceRefresh) {
+      const cached = getFromCache<{ grade: Grade; pagination: typeof pagination }>(cacheKey);
+      if (cached) {
+        setGrade(cached.grade);
+        setPagination(cached.pagination);
+        return;
+      }
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if(!user) return;
+      const response: ClassGradeResponse = await gradeApi.getClassGradesStudent(classId, String(user._id), filter);
+      
+      if (!isMounted.current) return;
+
+      const gradeData = response.data.grade || [];
+
+      setGrade(gradeData);
+
+      // Update cache
+      setToCache(cacheKey, { grade: gradeData });
     } catch (err: any) {
       if (!isMounted.current) return;
       console.error('Error fetching grades:', err);
@@ -216,13 +257,15 @@ export const useGrades = (classId: string, filter?: GradeFilter) => {
   return {
     grades,
     loading,
+    grade,
     error,
     pagination,
     refetch: () => fetchGrades(true),
     updateGradeComponent,
     calculateFinalGrade,
     calculateFinalGradeClass,
-    deleteGrade
+    deleteGrade,
+    fetchGradesStudent
   };
 };
 
@@ -358,7 +401,7 @@ export const useStudentGrade = (classId: string, studentId: string) => {
     error,
     refetch: () => fetchStudentGrade(true),
     updateGradeComponent,
-    calculateFinalGrade
+    calculateFinalGrade,
   };
 };
 
@@ -424,7 +467,7 @@ export const useClassGradeStatistics = (classId: string) => {
     statistics,
     loading,
     error,
-    refetch: () => fetchStatistics(true)
+    refetch: () => fetchStatistics(true),
   };
 };
 
@@ -508,6 +551,6 @@ export const useGradeForm = () => {
     updateGradeComponent,
     calculateFinalGrade,
     calculateFinalGradeClass,
-    bulkUpdateGrades
+    bulkUpdateGrades,
   };
 };

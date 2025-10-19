@@ -62,6 +62,7 @@ export const useDocuments = (classId: string, filters?: DocumentFilter) => {
     }
   }, [classId, filters, cacheKey]);
 
+
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);

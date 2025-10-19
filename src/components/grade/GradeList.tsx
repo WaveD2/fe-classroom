@@ -53,10 +53,6 @@ const GradeList = memo(({
     return (grade.attendance + grade.homework + grade.midterm + grade.final) / 4;
   };
 
-  // ===================================
-  // LOADING STATE
-  // ===================================
-
   if (loading) {
     return (
       <div className="space-y-3">
@@ -239,10 +235,6 @@ const GradeList = memo(({
     );
   }
 
-  // ===================================
-  // LIST VIEW - Dạng Table full-width
-  // ===================================
-
   return (
     <>
       <div className="overflow-x-auto">
@@ -398,7 +390,6 @@ const GradeList = memo(({
         </table>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />

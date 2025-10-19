@@ -1,15 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
-  Clock, 
   Users, 
   CheckCircle, 
   AlertCircle, 
   Search,
   Filter,
   Calendar,
-  UserCheck,
-  UserX,
   ChevronRight,
   ChevronDown,
   Loader2
@@ -84,19 +81,6 @@ const ManualAttendanceModal = ({
     } else {
       setSelectedStudents(filteredStudents.map(student => student._id || student.id));
     }
-  };
-
-  const handleSelectByType = (type: 'active' | 'inactive') => {
-    const studentsToSelect = filteredStudents.filter(student => {
-      if (type === 'active') {
-        return (student.attendanceRate || 0) >= 80;
-      } else {
-        return (student.attendanceRate || 0) < 80;
-      }
-    });
-    
-    const studentIds = studentsToSelect.map(student => student._id || student.id);
-    setSelectedStudents(prev => [...new Set([...prev, ...studentIds])]);
   };
 
   // Reset form when modal opens
@@ -199,24 +183,6 @@ const ManualAttendanceModal = ({
                 className="text-xs"
               >
                 {selectedStudents.length === filteredStudents.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
-              </Button>
-              <Button
-                onClick={() => handleSelectByType('active')}
-                variant="secondary"
-                size="sm"
-                className="text-xs text-green-600 hover:text-green-700"
-              >
-                <UserCheck className="w-3 h-3 mr-1" />
-                Chọn học sinh tích cực
-              </Button>
-              <Button
-                onClick={() => handleSelectByType('inactive')}
-                variant="secondary"
-                size="sm"
-                className="text-xs text-orange-600 hover:text-orange-700"
-              >
-                <UserX className="w-3 h-3 mr-1" />
-                Chọn học sinh vắng nhiều
               </Button>
             </div>
           </div>
@@ -327,7 +293,6 @@ const ManualAttendanceModal = ({
             <div className="space-y-2">
               {filteredStudents.map((student, index) => {
                 const isSelected = selectedStudents.includes(student._id || student.id);
-                const attendanceRate = student.attendanceRate || 0;
                 
                 return (
                   <div
@@ -350,28 +315,11 @@ const ManualAttendanceModal = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="font-semibold text-gray-900 truncate">{student.name}</p>
-                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            attendanceRate >= 80 
-                              ? 'bg-green-100 text-green-700' 
-                              : attendanceRate >= 60 
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {attendanceRate}%
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium `}>
+                            {student.attendanceCount} / {student.attendanceTotal}
                           </div>
                         </div>
                         <p className="text-sm text-gray-500 truncate mt-1">{student.email}</p>
-                        
-                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {student.attendanceCount || 0} lần
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {attendanceRate >= 80 ? 'Tích cực' : attendanceRate >= 60 ? 'Trung bình' : 'Cần cải thiện'}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>

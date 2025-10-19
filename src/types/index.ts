@@ -159,6 +159,7 @@ export interface StudentWithAttendance extends User {
     attendanceCount: number;
     attendanceRate: number;
     attendanceTimes: string[];
+    attendanceTotal?: number;
 }
 
 export interface ManualAttendanceData {
@@ -334,6 +335,14 @@ export interface ClassGradesResponse {
       total: number;
       totalPages: number;
     };
+  };
+}
+
+export interface ClassGradeResponse {
+  message: string;
+  data: {
+    grade: Grade;
+    student: User;
   };
 }
 

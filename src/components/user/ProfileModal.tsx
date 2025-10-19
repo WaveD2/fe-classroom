@@ -99,7 +99,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   };
 
   const handleAvatarUploadSuccess = (file: any) => {
-    console.log('Avatar uploaded:', file);
     setUploadedAvatar(file);
     // Cập nhật preview avatar ngay lập tức
     setFormData(prev => ({
@@ -119,6 +118,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       const updateData: Partial<UserType> = {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone
       };
 
       if (uploadedAvatar) {
@@ -218,9 +218,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 }}
                 disabled={!isEditing}
               />
-              <div className={`absolute -bottom-2 -right-2 px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                {getRoleDisplayName(user.role)}
-              </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">{formData.name}</h3>
@@ -228,11 +225,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               <p className="text-sm text-gray-500">
                 Tham gia từ {new Date(user.createdAt).toLocaleDateString('vi-VN')}
               </p>
-              {isEditing && uploadedAvatar && (
-                <p className="text-xs text-green-600 mt-2">
-                  ✓ Avatar mới đã được chọn
-                </p>
-              )}
             </div>
           </div>
 

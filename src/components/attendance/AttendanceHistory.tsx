@@ -93,7 +93,7 @@ const AttendanceHistory = ({
               <div>
                 <p className="text-sm text-green-600 font-medium">Tổng lượt điểm danh</p>
                 <p className="text-2xl font-bold text-green-900">
-                  {students.reduce((sum, student) => sum + student.attendanceCount, 0)}
+                  {students.length ? students[0]?.attendanceTotal : 0}
                 </p>
               </div>
             </div>
@@ -105,11 +105,9 @@ const AttendanceHistory = ({
                 <TrendingUp className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-purple-600 font-medium">Tỷ lệ trung bình</p>
+                <p className="text-sm text-purple-600 font-medium">Tổng số điểm danh</p>
                 <p className="text-2xl font-bold text-purple-900">
-                  {students.length > 0 
-                    ? (students.reduce((sum, student) => sum + student.attendanceRate, 0) / students.length).toFixed(1)
-                    : 0}%
+                    {students.reduce((sum, student) => sum + student.attendanceCount, 0)}
                 </p>
               </div>
             </div>
@@ -141,18 +139,6 @@ const AttendanceHistory = ({
                       <p className="font-medium text-gray-900 truncate">{item.studentName}</p>
                       <p className="text-sm text-gray-500 truncate">{item.studentEmail}</p>
                     </div>
-                  </div>
-                  
-                  {/* Attendance Stats */}
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {item.attendanceCount} lần
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      {item.attendanceRate}%
-                    </span>
                   </div>
                 </div>
 

@@ -19,6 +19,7 @@ import { ListSkeleton } from '../components/loading/LoadingSkeleton';
 import ClassStats from '../components/class/ClassStats';
 import ClassCard from '../components/class/ClassCard';
 import ClassList from '../components/class/ClassList';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
   const [classes, setClasses] = useState<ClassI[]>([]);
@@ -38,6 +39,7 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
   const [showTeacherDetail, setShowTeacherDetail] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const fetchClasses = useCallback(async () => {
     setLoading(true);
@@ -94,15 +96,15 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
   }, []);
 
   const handleDeleteClass = useCallback(async (classId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa lớp học này?')) return;
-    
     try {
       await deleteClass(classId);
       showSuccess('Xóa lớp học thành công');
       await fetchClasses();
+      setSelectedClass(null);
+      setShowDeleteModal(false);
     } catch (error) {
       showError('Có lỗi xảy ra khi xóa lớp học');
-    }
+    } 
   }, [fetchClasses]);
 
   const handleViewTeacher = useCallback((teacher: any) => {
@@ -204,7 +206,10 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
                     classItem={classItem}
                     index={index}
                     onManageClass={handleManageClass}
-                    onDeleteClass={handleDeleteClass}
+                    onDeleteClass={(cls)=> { 
+                      setSelectedClass(cls)
+                      setShowDeleteModal(true)
+                    }}
                     onViewTeacher={handleViewTeacher}
                   />
                 ))}
@@ -213,7 +218,10 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
               <ClassList
                 classes={classes}
                 onManageClass={handleManageClass}
-                onDeleteClass={handleDeleteClass}
+                onDeleteClass={(cls : ClassI)=> { 
+                  setSelectedClass(cls)
+                  setShowDeleteModal(true)
+                }}
                 onViewTeacher={handleViewTeacher}
               />
             )}
@@ -294,6 +302,14 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
           setSelectedTeacher(null);
         }}
         teacher={selectedTeacher}
+      />
+
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Xác nhận xóa lớp học"
+        message={`Bạn có chắc chắn muốn xóa ${selectedClass?.name} không? Hành động này không thể hoàn tác.`}
+        onClose={()=> setShowDeleteModal(false)}
+        onConfirm={()=> handleDeleteClass(selectedClass?._id || selectedClass?.id || "")}
       />
     </div>
   );

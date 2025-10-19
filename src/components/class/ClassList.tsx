@@ -11,7 +11,7 @@ import { ClassI } from '../../types';
 interface ClassListProps {
   classes: ClassI[];
   onManageClass: (classItem: ClassI) => void;
-  onDeleteClass: (classId: string) => void;
+  onDeleteClass: (classId: ClassI) => void;
   onViewTeacher: (teacher: any) => void;
 }
 
@@ -115,7 +115,7 @@ const ClassList = memo(({ classes, onManageClass, onDeleteClass, onViewTeacher }
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => onDeleteClass(classItem.id || classItem._id)}
+                      onClick={() => onDeleteClass(classItem)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group-hover:scale-110"
                       title="Xóa lớp"
                     >

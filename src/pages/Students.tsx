@@ -27,8 +27,12 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSubmit = useCallback( async (data: UserType) => {
-    await createUser(data as any);
-    fetchData(1, search);
+    const response =  await createUser(data as any);
+    console.log("response: ", response);
+    if(response.success){
+      fetchData(1, search);
+    }
+    return response;
   }, []);
 
   useEffect(() => {

@@ -19,7 +19,6 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +41,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     'text/plain',
   ];
 
-  const maxSize = 50 * 1024 * 1024; // 50MB
+  const maxSize = 20 * 1024 * 1024; // 50MB
 
   const validateFile = (file: File): string | null => {
     if (!allowedTypes.includes(file.type)) {
@@ -125,14 +124,10 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
     setUploading(true);
     setError(null);
-    setUploadProgress(0);
 
     try {
       // Step 1: Upload file to Cloudinary
-      const uploadResult = await uploadFile(file, (progress) => {
-        setUploadProgress(progress);
-      });
-
+      const uploadResult = await uploadFile(file)
       if (!uploadResult.success || !uploadResult.data) {
         throw new Error(uploadResult.error || 'Upload file thất bại');
       }
@@ -159,7 +154,6 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       setError(err.message || 'Có lỗi xảy ra khi tải tài liệu lên');
     } finally {
       setUploading(false);
-      setUploadProgress(0);
     }
   };
 
@@ -170,7 +164,6 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     setDescription('');
     setStatus('public' as DOCUMENT_STATUS);
     setError(null);
-    setUploadProgress(0);
     onClose();
   };
 
@@ -230,7 +223,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                     Chọn file
                   </button>
                   <p className="text-sm text-gray-500 mt-3">
-                    PDF, Word, Excel, PowerPoint, ZIP, RAR, TXT (max 50MB)
+                    PDF, Word, Excel, PowerPoint, TXT (max 20MB)
                   </p>
                 </div>
               ) : (
@@ -274,7 +267,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
               onChange={(e) => setDocumentName(e.target.value)}
               disabled={uploading}
               placeholder="Nhập tên tài liệu"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full focus:outline-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               required
             />
           </div>
@@ -290,7 +283,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
               disabled={uploading}
               placeholder="Nhập mô tả về tài liệu (không bắt buộc)"
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-gray-100"
+              className="w-full focus:outline-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-gray-100"
             />
           </div>
 
@@ -307,7 +300,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                   checked={status === 'public'}
                   onChange={(e) => setStatus(e.target.value as DOCUMENT_STATUS)}
                   disabled={uploading}
-                  className="mr-2"
+                  className="mr-2 outline-0"
                 />
                 <span className="text-sm text-gray-700">Công khai (Tất cả học sinh)</span>
               </label>
@@ -318,28 +311,13 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                   checked={status === 'private'}
                   onChange={(e) => setStatus(e.target.value as DOCUMENT_STATUS)}
                   disabled={uploading}
-                  className="mr-2"
+                  className="mr-2 outline-0"
                 />
                 <span className="text-sm text-gray-700">Riêng tư (Chỉ giáo viên)</span>
               </label>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          {uploading && uploadProgress > 0 && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Đang tải lên...</span>
-                <span className="font-medium text-blue-600">{uploadProgress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (

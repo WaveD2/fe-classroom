@@ -114,8 +114,6 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
 
   // Delete class
   const handleDeleteClass = useCallback(async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa lớp học này?')) return;
-    
     try {
       await deleteClass(id);
       await fetchClassesData(pagination.page, searchTerm);

@@ -262,7 +262,7 @@ const GradeFormModal = memo(({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 h-full">
           {currentMode === 'view' && grade ? (
             /* VIEW MODE */
             <>
@@ -373,7 +373,7 @@ const GradeFormModal = memo(({
                   <select
                     value={selectedStudentId}
                     onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full outline-0 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                       errors.studentId ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                     disabled={loading}
@@ -411,7 +411,7 @@ const GradeFormModal = memo(({
 
               {/* Grade Inputs */}
               {selectedStudentId && (
-                <>
+                <div className=' '>
                   <div className="grid grid-cols-2 gap-4">
                     {[
                       { key: 'attendance', label: 'Chuyên cần', icon: '📅', weight: '10%' },
@@ -469,7 +469,7 @@ const GradeFormModal = memo(({
                   )}
 
                   {/* Actions */}
-                  <div className="flex gap-3 pt-4 border-t">
+                  <div className="flex gap-3 pt-4 ">
                     <Button
                       type="button"
                       variant="secondary"
@@ -485,19 +485,19 @@ const GradeFormModal = memo(({
                       className="flex-1"
                     >
                       {loading ? (
-                        <div className="flex items-center gap-2">
+                        <div>
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           Đang lưu...
                         </div>
                       ) : (
-                        <>
+                        <div className='flex items-center gap-2'>
                           <Save className="w-4 h-4 mr-2" />
                           {currentMode === 'create' ? 'Tạo điểm' : 'Cập nhật'}
-                        </>
+                        </div>
                       )}
                     </Button>
                   </div>
-                </>
+                </div>
               )}
             </form>
           )}

@@ -70,12 +70,6 @@ const StudentList = memo(({
     return 'text-red-600 bg-red-100';
   };
 
-  const getAttendanceStatusText = (rate: number) => {
-    if (rate >= 80) return 'Tốt';
-    if (rate >= 60) return 'Trung bình';
-    return 'Cần cải thiện';
-  };
-
   return (
     <div className="space-y-4">
       {/* Search and Controls */}
@@ -193,22 +187,11 @@ const StudentList = memo(({
                 
                 {/* Attendance Stats */}
                 <div className="space-y-2">
-                  <div className='flex items-center justify-center gap-x-2'>
-                    <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>{student.attendanceCount || 0} lần</span>
-                    </div>
-                    
                     <div className="flex items-center justify-center gap-2">
-                      <TrendingUp className="w-3 h-3 text-gray-500" />
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAttendanceStatusColor(student.attendanceRate || 0)}`}>
-                        {student.attendanceRate || 0}%
+                      <Clock className="w-3 h-3 text-gray-500" />
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAttendanceStatusColor(student.attendanceRate)}`}>
+                        {student.attendanceCount || 0} / {student.attendanceTotal || 0}
                       </span>
-                    </div>
-                    </div>
-                    
-                    <div className="text-xs text-gray-500">
-                      {getAttendanceStatusText(student.attendanceRate || 0)}
                     </div>
                 </div>
 
@@ -262,7 +245,7 @@ const StudentList = memo(({
                       </span>
                       <span className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" />
-                        <span className={`px-2 py-1 rounded-full font-medium ${getAttendanceStatusColor(student.attendanceRate || 0)}`}>
+                        <span className={`px-2 py-1 rounded-full font-medium ${getAttendanceStatusColor(student.attendanceRate)}`}>
                           {student.attendanceRate || 0}%
                         </span>
                       </span>

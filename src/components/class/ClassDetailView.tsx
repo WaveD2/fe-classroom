@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Button from '../common/Button';
-import { QrCode, Users, Clock, History, Download, ArrowLeft, Calendar, BookOpen, GraduationCap, UserCheck, Award, BarChart3, DownloadCloudIcon, Upload, PieChart } from 'lucide-react'; 
+import { QrCode, Users, Clock, History, Download, ArrowLeft, Calendar, BookOpen, GraduationCap, UserCheck, Award, BarChart3, DownloadCloudIcon, Upload } from 'lucide-react'; 
 import QRGenerator from '../QR/QRGenerator';
 import StudentList from '../user/StudentList';
 import AttendanceHistory from '../attendance/AttendanceHistory';
@@ -25,6 +25,7 @@ import { exportAttendanceClass, getClassDetail } from '../../api/class';
 import { useGrades, useClassGradeStatistics } from "../../hook/useGrade";
 import { useDocuments } from "../../hook/useDocuments";
 import { useNavigate, useParams } from 'react-router-dom';
+import GradeStudent from '../grade/GradeStudent';
 const ClassDetailView = ({ userRole }: {
   userRole: string;
 }) => {
@@ -52,8 +53,10 @@ const ClassDetailView = ({ userRole }: {
   // Grade Management hooks
   const { 
     grades, 
+    grade,
     loading: gradesLoading,
     refetch: fetchGrades,
+    fetchGradesStudent,
     updateGradeComponent: updateGrade,
     calculateFinalGrade,
     deleteGrade: deleteGradeById
@@ -127,7 +130,7 @@ const ClassDetailView = ({ userRole }: {
       setIsLoading(false);
     }
   };
-
+  
   useEffect(() => {
     const fetchClass = async () => {
       setIsLoading(true);
@@ -149,8 +152,6 @@ const ClassDetailView = ({ userRole }: {
         setIsLoading(false);
       }
     };
-
-
     const fetchQrHistory = async () => {
       try {
         const response = await getAllQR({ classId: id });
@@ -162,7 +163,8 @@ const ClassDetailView = ({ userRole }: {
       }
     };
 
-
+    console.log("userRole:::0", userRole);
+    
     switch (activeTab) {
       case 'students':
         fetchClass();
@@ -174,6 +176,10 @@ const ClassDetailView = ({ userRole }: {
         if (userRole === ROLE.TEACHER) fetchQrHistory();
         break;
       case 'grades':
+        if (userRole === ROLE.STUDENT) {
+          fetchGradesStudent();
+          break;
+        }
         fetchGrades();
         break;
       case 'statistics':
@@ -327,10 +333,12 @@ const ClassDetailView = ({ userRole }: {
               { key: "students", label: "Học sinh", icon: Users, shortLabel: "HS" },
               { key: "attendance", label: "Điểm danh", icon: Clock, shortLabel: "DD" },
               { key: "grades", label: "Điểm số", icon: Award, shortLabel: "Điểm" },
-              { key: "statistics", label: "Thống kê điểm", icon: BarChart3, shortLabel: "TK" },
               { key: "documents", label: "Tài liệu", icon: DownloadCloudIcon, shortLabel: "TL" },
               // { key: "document-statistics", label: "Thống kê TL", icon: PieChart, shortLabel: "TKTL" },
-              ...(userRole === ROLE.TEACHER ? [{ key: "qr", label: "Lịch sử QR", icon: History, shortLabel: "QR" }] : []),
+              ...(userRole !== ROLE.STUDENT ? [
+                { key: "statistics", label: "Thống kê điểm", icon: BarChart3, shortLabel: "TK" },
+                { key: "qr", label: "Lịch sử QR", icon: History, shortLabel: "QR" },
+              ] : []),
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -371,7 +379,7 @@ const ClassDetailView = ({ userRole }: {
             {activeTab === "attendance" && (
               <AttendanceHistory
                 students={listStudent}
-                title={userRole === ROLE.TEACHER ? "Lịch sử điểm danh lớp" : "Điểm danh của tôi"}
+                title={"Lịch sử điểm danh"}
               />
             )}
             {activeTab === "grades" && (
@@ -383,25 +391,30 @@ const ClassDetailView = ({ userRole }: {
                 />
                 {gradesLoading ? (
                   <LoadingState type="grades" />
-                ) : (
-                  <GradeList
-                    grades={grades}
-                    loading={false}
-                    onEdit={(grade) => {
-                      setSelectedGrade(grade);
-                      setGradeModalMode('edit');
-                      setShowGradeModal(true);
-                    }}
-                    onDelete={deleteGrade}
-                    onView={(grade) => {
-                      setSelectedGrade(grade);
-                      setGradeModalMode('view');
-                      setShowGradeModal(true);
-                    }}
-                    showActions={userRole === ROLE.TEACHER || userRole === ROLE.ADMIN}
-                    showStudent={true}
+                ) : 
+                  userRole !== ROLE.STUDENT ? (
+                      <GradeList
+                        grades={grades}
+                        loading={false}
+                        onEdit={(grade) => {
+                          setSelectedGrade(grade);
+                          setGradeModalMode('edit');
+                          setShowGradeModal(true);
+                        }}
+                        onDelete={deleteGrade}
+                        onView={(grade) => {
+                          setSelectedGrade(grade);
+                          setGradeModalMode('view');
+                          setShowGradeModal(true);
+                        }}
+                        showActions={userRole === ROLE.TEACHER || userRole === ROLE.ADMIN}
+                        showStudent={true}
+                      />
+                  ) : 
+                  <GradeStudent 
+                    grade={grade as Grade}
                   />
-                )}
+                }
               </div>
             )}
             {activeTab === "statistics" && (

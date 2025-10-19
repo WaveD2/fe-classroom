@@ -121,6 +121,23 @@ export const deleteGrade = async (classId: string, gradeId: string) => {
   }
 };
 
+export const getClassGradesStudent = async (classId: string, studentId: string, filter?: GradeFilter) => {
+  try {
+    const params = new URLSearchParams();
+    if (filter?.page) params.append('page', filter.page.toString());
+    if (filter?.limit) params.append('limit', filter.limit.toString());
+    
+    const queryString = params.toString();
+    const response = await api.get(`/class/${classId}/grades/${studentId}${queryString ? '?' + queryString : ''}`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Có lỗi xảy ra khi lấy danh sách điểm lớp");
+    }
+    throw error;
+  }
+};
+
 // ===================================
 // UTILITY FUNCTIONS
 // ===================================
