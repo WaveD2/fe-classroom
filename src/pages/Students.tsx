@@ -16,6 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import CreateUserModal from "../components/user/CreateUser";
+import UserList from "../components/user/UserList";
 
 export default function StudentsPage({ userRole }: { userRole: string }) {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
   const handleSubmit = useCallback( async (data: UserType) => {
     const response =  await createUser(data as any);
     console.log("response: ", response);
-    if(response.success){
+    if(response?.data){
       fetchData(1, search);
     }
     return response;
@@ -68,6 +69,10 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
   const handlePageChange = (page: number) => {
     if (page < 1 || (pagination.totalPages && page > pagination.totalPages)) return;
     setPagination((p) => ({ ...p, page }));
+  };
+
+  const handleViewUser = (student: UserType) => {
+    navigate(`/student/${student.id || student._id}`);
   };
 
   return (
@@ -141,6 +146,12 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
 
         {loading ? (
           <ListSkeleton />
+        ) : viewMode === 'list' ? (
+          <UserList
+            users={students}
+            role={ROLE.STUDENT}
+            onViewUser={handleViewUser}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {students.map((student, index) => (

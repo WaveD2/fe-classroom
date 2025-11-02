@@ -48,15 +48,15 @@ const ClassFormModal: React.FC<ClassFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newErrors: { name?: string; teacherId?: string } = {};
+    const newErrors: { name?: string; teacherId?: string; academicCredit?: string } = {};
     if (!formData.name.trim()) {
       newErrors.name = 'Tên lớp học là bắt buộc';
     }
     if (!formData.teacherId) {
       newErrors.teacherId = 'Vui lòng chọn giáo viên phụ trách';
     }
-    if (!formData.academicCredit) {
-      newErrors.teacherId = 'Vui lòng nhập số tín chỉ';
+    if (!formData.academicCredit || formData.academicCredit <= 0) {
+      newErrors.academicCredit = 'Vui lòng nhập số tín chỉ hợp lệ';
     }
     
     setErrors(newErrors);
@@ -89,9 +89,9 @@ const ClassFormModal: React.FC<ClassFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl animate-fadeIn">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl animate-fadeIn max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <BookOpen className="w-6 h-6 text-blue-600" />
@@ -106,39 +106,41 @@ const ClassFormModal: React.FC<ClassFormModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+        {/* Form - Scrollable content */}
+        <form id="class-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Tên lớp học *
             </label>
             <input
+              id="name"
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Nhập tên lớp học"
-              className={`w-full px-3 py-2 sm:px-4 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm sm:text-base ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base ${
+                errors.name ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
               }`}
             />
             {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              <p className="mt-1.5 text-sm text-red-600">{errors.name}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="teacherId" className="block text-sm font-medium text-gray-700 mb-2">
               Giáo viên phụ trách *
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <select
+                id="teacherId"
                 name="teacherId"
                 value={formData.teacherId}
                 onChange={handleInputChange}
-                className={`w-full pl-10 pr-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm sm:text-base ${
-                  errors.teacherId ? 'border-red-500' : 'border-gray-300'
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base appearance-none bg-white ${
+                  errors.teacherId ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
                 }`}
               >
                 <option value="">Chọn giáo viên phụ trách</option>
@@ -154,85 +156,93 @@ const ClassFormModal: React.FC<ClassFormModalProps> = ({
               </select>
             </div>
             {errors.teacherId && (
-              <p className="mt-1 text-sm text-red-600">{errors.teacherId}</p>
+              <p className="mt-1.5 text-sm text-red-600">{errors.teacherId}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="academicCredit" className="block text-sm font-medium text-gray-700 mb-2">
               Số tín chỉ *
             </label>
             <input
+              id="academicCredit"
               type="number"
               name="academicCredit"
               value={formData.academicCredit}
               onChange={handleInputChange}
               placeholder="Nhập số tín chỉ lớp học"
-              className={`w-full px-3 py-2 sm:px-4 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm sm:text-base ${
-                errors.academicCredit ? 'border-red-500' : 'border-gray-300'
+              min="0"
+              step="1"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base ${
+                errors.academicCredit ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
               }`}
             />
             {errors.academicCredit && (
-              <p className="mt-1 text-sm text-red-600">{errors.academicCredit}</p>
+              <p className="mt-1.5 text-sm text-red-600">{errors.academicCredit}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
               Mã lớp (tùy chọn)
             </label>
             <input
+              id="code"
               type="text"
               name="code"
-              value={formData.code}
+              value={formData.code || ''}
               onChange={handleInputChange}
               placeholder="Nhập mã lớp tùy chỉnh"
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm sm:text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base"
             />
-            <p className="mt-1 text-xs text-gray-500">Để trống để tự động tạo mã</p>
+            <p className="mt-1.5 text-xs text-gray-500">Để trống để tự động tạo mã</p>
           </div>
 
-          
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
               Mô tả
             </label>
             <textarea
+              id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               placeholder="Nhập mô tả lớp học (tùy chọn)"
-              rows={3}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors resize-none text-sm sm:text-base"
+              rows={4}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none text-base"
             />
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 sm:py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              disabled={loading || loadingTeachers}
-              className="flex-1 px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Đang tạo...
-                </div>
-              ) : (
-                'Tạo lớp'
-              )}
-            </button>
-          </div>
         </form>
+
+        {/* Actions - Fixed footer */}
+        <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-4 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-base"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(e as any);
+            }}
+            disabled={loading || loadingTeachers}
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-sm hover:shadow-md"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Đang tạo...</span>
+              </div>
+            ) : (
+              'Tạo lớp'
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

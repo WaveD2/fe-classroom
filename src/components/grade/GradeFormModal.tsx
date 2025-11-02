@@ -347,7 +347,7 @@ const GradeFormModal = memo(({
                   <Button 
                     onClick={handleCalculateFinal}
                     disabled={loading}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1 flex gap-2 bg-green-600 hover:bg-green-700"
                   >
                     <Calculator className="w-4 h-4 mr-2" />
                     Tính điểm

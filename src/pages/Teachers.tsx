@@ -16,6 +16,7 @@ import {
   Plus
 } from "lucide-react";
 import CreateUserModal from "../components/user/CreateUser";
+import UserList from "../components/user/UserList";
 
 export default function TeachersPage({ userRole }: { userRole: string }) {
   const navigate = useNavigate();
@@ -33,11 +34,6 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
     }
   }, [userRole, navigate]);
 
-   const handleSubmit = useCallback( async (data: User) => {
-      await createUser(data as any);
-      fetchData(1, search);
-    }, []);
-
   const fetchData = useMemo(() => {
     return async (page = pagination.page, currentSearch = search) => {
       setLoading(true);
@@ -53,6 +49,11 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
     };
   }, [pagination.page, pagination.limit, search]);
 
+  const handleSubmit = useCallback( async (data: User) => {
+      await createUser(data as any);
+      fetchData(1, search);
+    }, [fetchData, search]);
+
     useEffect(() => {
         fetchData(1, search);
     }, [search, fetchData]);
@@ -64,6 +65,10 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
   const handlePageChange = (page: number) => {
     if (page < 1 || (pagination.totalPages && page > pagination.totalPages)) return;
     setPagination((p) => ({ ...p, page }));
+  };
+
+  const handleViewUser = (teacher: User) => {
+    navigate(`/teacher/${teacher.id || teacher._id}`);
   };
 
   return (
@@ -135,9 +140,15 @@ export default function TeachersPage({ userRole }: { userRole: string }) {
           </div>
         )}
 
-        {/* Teachers Grid */}
+        {/* Teachers Grid/List */}
         {loading ? (
           <ListSkeleton />
+        ) : viewMode === 'list' ? (
+          <UserList
+            users={teachers}
+            role={ROLE.TEACHER}
+            onViewUser={handleViewUser}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {teachers.map((teacher, index) => (

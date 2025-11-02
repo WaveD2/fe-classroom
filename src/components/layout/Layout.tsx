@@ -43,7 +43,7 @@ export default function Layout() {
           {/* Footer */}
           <footer className="bg-white border-t border-gray-200 px-4 py-6">
             <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex justify-between">
                 {/* Brand Section */}
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-indigo-600">PTIT</h3>
@@ -53,7 +53,7 @@ export default function Layout() {
                 </div>
                 
                 {/* Quick Links */}
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Liên kết nhanh</h4>
                   <ul className="space-y-2">
                     <li>
@@ -81,7 +81,7 @@ export default function Layout() {
                       </>
                     )}
                   </ul>
-                </div>
+                </div> */}
                 
                 {/* Contact Info */}
                 <div className="space-y-3">
