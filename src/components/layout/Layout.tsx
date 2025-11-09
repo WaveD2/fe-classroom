@@ -4,7 +4,6 @@ import { useState } from "react";
 import {  ROLE, User } from "../../types";
 import { logout, updateProfile } from "../../api/auth";
 import ProfileModal from "../user/ProfileModal";
-import logoImage from "../../assets/logo.jpeg";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
