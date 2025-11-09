@@ -26,6 +26,7 @@ import { useGrades, useClassGradeStatistics } from "../../hook/useGrade";
 import { useDocuments } from "../../hook/useDocuments";
 import { useNavigate, useParams } from 'react-router-dom';
 import GradeStudent from '../grade/GradeStudent';
+import { showError } from '../Toast';
 const ClassDetailView = ({ userRole }: {
   userRole: string;
 }) => {
@@ -302,7 +303,9 @@ const ClassDetailView = ({ userRole }: {
                             a.download = `${classData?.name}_${new Date().toISOString().split('T')[0]}.xlsx`;
                             a.click();
                             URL.revokeObjectURL(blobUrl);
-                          } catch (error) {
+                          } catch (error: any) {
+                            console.log("error");
+                            showError("Không có dữ liệu để xuất")
                             console.error('Export error:', error);
                           }
                         }} 

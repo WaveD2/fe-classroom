@@ -335,7 +335,7 @@ const ExcelGradeUploader = memo(({
                           ⚠ Thất bại: {uploadResult.data.failedCount} học sinh
                         </p>
                       )}
-                      {uploadResult.data.errors && uploadResult.data.errors.length > 0 && (
+                      {/* {uploadResult.data.errors && uploadResult.data.errors.length > 0 && (
                         <div className="mt-2 p-2 bg-white rounded border border-red-200">
                           <p className="font-medium text-red-900 text-xs mb-1">Chi tiết lỗi:</p>
                           <ul className="text-xs text-red-700 space-y-1">
@@ -347,7 +347,7 @@ const ExcelGradeUploader = memo(({
                             )}
                           </ul>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   )}
                 </div>

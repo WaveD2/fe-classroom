@@ -151,7 +151,7 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
                 </Button>
               )}
 
-              {userRole === ROLE.TEACHER && (
+              {/* {userRole === ROLE.TEACHER && (
                 <Button
                   size="sm"
                   onClick={() => setShowCreateClass(true)}
@@ -161,7 +161,7 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
                   <span>Tạo lớp mới</span>
                   <ArrowRight className="w-3 h-3" />
                 </Button>
-              )}
+              )} */}
 
               {userRole === ROLE.ADMIN && (
                 <div className="flex gap-2">

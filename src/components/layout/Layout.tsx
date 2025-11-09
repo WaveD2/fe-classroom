@@ -4,6 +4,7 @@ import { useState } from "react";
 import {  ROLE, User } from "../../types";
 import { logout, updateProfile } from "../../api/auth";
 import ProfileModal from "../user/ProfileModal";
+import logoImage from "../../assets/logo.jpeg";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,43 +53,12 @@ export default function Layout() {
                   </p>
                 </div>
                 
-                {/* Quick Links */}
-                {/* <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Liên kết nhanh</h4>
-                  <ul className="space-y-2">
-                    <li>
-                      <a href="/" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Lớp học
-                      </a>
-                    </li>
-                    <li>
-                      <a href="/grades" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Điểm số
-                      </a>
-                    </li>
-                    {user?.role === ROLE.ADMIN && (
-                      <>
-                        <li>
-                          <a href="/student" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Quản lý học sinh
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/teacher" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Quản lý giáo viên
-                          </a>
-                        </li>
-                      </>
-                    )}
-                  </ul>
-                </div> */}
-                
                 {/* Contact Info */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Thông tin liên hệ</h4>
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Email:</span> support@ptit.edu.vn
+                      <span className="font-medium">Email:</span> support@PTIT.edu.vn
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Điện thoại:</span> (024) 1234-5678
@@ -104,7 +74,7 @@ export default function Layout() {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
                   <p className="text-xs text-gray-500">
-                    © 2024 PTIT. Tất cả quyền được bảo lưu.
+                    © 2025 PTIT. Tất cả quyền được bảo lưu.
                   </p>
                   <div className="flex space-x-4">
                     <a href="#" className="text-xs text-gray-500 hover:text-indigo-600 transition-colors">
@@ -167,7 +137,13 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="h-full flex flex-col p-4">
-          <h1 className="text-xl font-bold text-indigo-600">PTIT</h1>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="https://career.gpo.vn/uploads/images/truong-hoc/logo-hoc-vien-cong-nghe-buu-chinh-vien-thong-1-.jpg" 
+              alt="PTIT Logo" 
+              className="h-12 w-auto object-contain max-w-full"
+            />
+          </div>
           <nav className="flex flex-col gap-2 mt-3">
             {menu.map((item: any) => (
               <NavLink
