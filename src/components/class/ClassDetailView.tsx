@@ -74,6 +74,8 @@ const ClassDetailView = ({ userRole }: {
   const [showDocumentDetail, setShowDocumentDetail] = useState(false);
   const [showDocumentEdit, setShowDocumentEdit] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
+  const [showExportConfirmModal, setShowExportConfirmModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [documentFilters, setDocumentFilters] = useState<DocumentFilter>({
     page: 1,
     limit: 10,
@@ -110,6 +112,40 @@ const ClassDetailView = ({ userRole }: {
 
     } catch (error) {
       console.error('Error deleting document:', error);
+    }
+  };
+
+  const handleExportData = () => {
+    if (!id) {
+      showError('Vui lòng chọn lớp học');
+      return;
+    }
+    setShowExportConfirmModal(true);
+  };
+
+  const handleConfirmExport = async () => {
+    if (!id || !classData) {
+      showError('Vui lòng chọn lớp học');
+      return;
+    }
+
+    setIsExporting(true);
+    setShowExportConfirmModal(false);
+
+    try {
+      const data: any = await exportAttendanceClass(id);
+      const blob = new Blob([data], { type: "application/octet-stream" });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${classData?.name}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch (error: any) {
+      console.error('Export error:', error);
+      showError("Không có dữ liệu để xuất");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -293,23 +329,9 @@ const ClassDetailView = ({ userRole }: {
                   
                     <>
                       <Button 
-                        onClick={async () => {
-                          try {
-                            const data: any = await exportAttendanceClass(id);
-                            const blob = new Blob([data], { type: "application/octet-stream" });
-                            const blobUrl = URL.createObjectURL(blob);
-                            const a = document.createElement("a");
-                            a.href = blobUrl;
-                            a.download = `${classData?.name}_${new Date().toISOString().split('T')[0]}.xlsx`;
-                            a.click();
-                            URL.revokeObjectURL(blobUrl);
-                          } catch (error: any) {
-                            console.log("error");
-                            showError("Không có dữ liệu để xuất")
-                            console.error('Export error:', error);
-                          }
-                        }} 
-                        className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base"
+                        onClick={handleExportData}
+                        disabled={isExporting}
+                        className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                         <span className="font-medium">Xuất dữ liệu</span>
@@ -555,6 +577,17 @@ const ClassDetailView = ({ userRole }: {
         confirmText="Xóa"
         cancelText="Hủy"
         type="error"
+      />
+
+      <ConfirmModal
+        open={showExportConfirmModal}
+        type="info"
+        title="Xác nhận xuất dữ liệu"
+        message={`Bạn có chắc chắn muốn xuất dữ liệu điểm danh của lớp "${classData?.name}" không? File Excel sẽ được tải về máy của bạn.`}
+        confirmText="Xuất dữ liệu"
+        cancelText="Hủy"
+        onClose={() => setShowExportConfirmModal(false)}
+        onConfirm={handleConfirmExport}
       />
     </div>
   );

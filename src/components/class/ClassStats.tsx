@@ -12,7 +12,7 @@ const ClassStats = memo(({ classes, pagination, loading }: ClassStatsProps) => {
   const stats = useMemo(() => {
     const activeClasses = classes.filter(c => c.status === 'open').length;
     const totalStudents = classes.reduce((sum, c) => sum + (c.studentCount || 0), 0);
-    const uniqueTeachers = new Set(classes.filter(c => c.teacher).map(c => c.teacher?.id)).size;
+    const uniqueTeachers = new Set(classes.filter(c => c.teacher).map(c => c.teacher?.email)).size;
 
     return {
       totalClasses: pagination.total,

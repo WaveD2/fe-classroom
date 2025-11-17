@@ -50,6 +50,20 @@ export const exportAttendanceClass = async (classId: string, filter?: Record<str
   return response.data;
 };
 
+export const exportGrades = async (classId: string) => {
+  try {
+    const response = await api.get(`/class/${classId}/export-grades`, {
+      responseType: 'blob'
+    });
+    return response;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Có lỗi xảy ra khi xuất dữ liệu điểm");
+    }
+    throw error;
+  }
+};
+
 export const getClassByAdmin = async (filter?: ClassFilter) => {
   const params = new URLSearchParams();
   if (filter?.page) params.append('page', filter.page.toString());

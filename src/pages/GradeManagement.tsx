@@ -10,7 +10,8 @@ import {
   List,
   AlertCircle,
   Calculator,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Download
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import GradeList from '../components/grade/GradeList';
@@ -18,9 +19,10 @@ import GradeStatistics from '../components/grade/GradeStatistics';
 import GradeFormModal from '../components/grade/GradeFormModal';
 import BulkGradeModal from '../components/grade/BulkGradeModal';
 import ExcelGradeUploader from '../components/grade/ExcelGradeUploader';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { useGrades, useClassGradeStatistics } from '../hook/useGrade';
 import { ClassI, GradeFilter, ROLE, Grade, GradeData, User as UserType } from '../types';
-import { getClass, getClassDetail } from '../api/class';
+import { getClass, getClassDetail, exportGrades } from '../api/class';
 import { showSuccess, showError } from '../components/Toast';
 import * as gradeApi from '../api/grade';
 
@@ -47,6 +49,10 @@ const GradeManagement = memo(() => {
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showExcelUploader, setShowExcelUploader] = useState(false);
+  const [showExportConfirmModal, setShowExportConfirmModal] = useState(false);
+  const [showCalculateConfirmModal, setShowCalculateConfirmModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'create'>('create');
   
@@ -168,16 +174,41 @@ const GradeManagement = memo(() => {
     }
   }, [calculateFinalGrade]);
 
-  const handleCalculateFinalClass = useCallback(async () => {
-    if (!selectedClassId) return;
-    
+  const handleCalculateFinalClassClick = useCallback(() => {
+    if (!selectedClassId) {
+      showError('Vui lòng chọn lớp học');
+      return;
+    }
+    if (!grades || grades.length === 0) {
+      showError('Lớp chưa có dữ liệu điểm để tính');
+      return;
+    }
+    setShowCalculateConfirmModal(true);
+  }, [selectedClassId, grades]);
+
+  const handleConfirmCalculateFinalClass = useCallback(async () => {
+    if (!selectedClassId || !selectedClassDetail) {
+      showError('Vui lòng chọn lớp học');
+      return;
+    }
+
+    setIsCalculating(true);
+    setShowCalculateConfirmModal(false);
+
     try {
       const response = await calculateFinalGradeClass();
       showSuccess(`Đã tính điểm tổng kết cho ${response.data.totalUpdated} học sinh`);
+      // Refresh grades after calculation
+      fetchGrades();
+      if (activeTab === 'statistics') {
+        fetchStatistics();
+      }
     } catch (error: any) {
       showError(error.message || 'Có lỗi xảy ra khi tính điểm cho lớp');
+    } finally {
+      setIsCalculating(false);
     }
-  }, [selectedClassId, calculateFinalGradeClass]);
+  }, [selectedClassId, selectedClassDetail, calculateFinalGradeClass, fetchGrades, fetchStatistics, activeTab]);
 
   const handleDeleteGrade = useCallback(async (gradeId: string) => {
     try {
@@ -222,6 +253,59 @@ const GradeManagement = memo(() => {
   const handleBulkUpdate = useCallback(async (grades: { studentId: string; gradeData: Partial<GradeData> }[]) => {
     await gradeApi.bulkUpdateGrades(selectedClassId, grades);
   }, [selectedClassId]);
+
+  const handleExportGrades = useCallback(() => {
+    if (!selectedClassId) {
+      showError('Vui lòng chọn lớp học');
+      return;
+    }
+    setShowExportConfirmModal(true);
+  }, [selectedClassId]);
+
+  const handleConfirmExport = useCallback(async () => {
+    if (!selectedClassId || !selectedClassDetail) {
+      showError('Vui lòng chọn lớp học');
+      return;
+    }
+
+    setIsExporting(true);
+    setShowExportConfirmModal(false);
+
+    try {
+      const response = await exportGrades(selectedClassId);
+      
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `Diem_${selectedClassDetail.name || selectedClassId}.xlsx`;
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Create blob and download
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      showSuccess('Xuất dữ liệu điểm thành công');
+    } catch (error: any) {
+      console.error('Error exporting grades:', error);
+      showError(error.message || 'Có lỗi xảy ra khi xuất dữ liệu điểm');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [selectedClassId, selectedClassDetail]);
 
   const students: UserType[] = selectedClassDetail?.students || [];
   const canManageGrades = user?.role === ROLE.TEACHER || user?.role === ROLE.ADMIN;
@@ -342,8 +426,17 @@ const GradeManagement = memo(() => {
                     <span className="hidden sm:inline">Excel</span>
                   </button>
                   <button
-                    onClick={handleCalculateFinalClass}
-                    disabled={!grades || grades.length === 0 || gradesLoading}
+                    onClick={handleExportGrades}
+                    disabled={!selectedClassId || isExporting || !grades || grades.length === 0}
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Xuất dữ liệu điểm"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">Xuất điểm</span>
+                  </button>
+                  <button
+                    onClick={handleCalculateFinalClassClick}
+                    disabled={!grades || grades.length === 0 || gradesLoading || isCalculating}
                     className="flex items-center gap-2 px-3 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Tính điểm cả lớp"
                   >
@@ -488,6 +581,28 @@ const GradeManagement = memo(() => {
                 fetchStatistics();
               }
             }}
+          />
+
+          <ConfirmModal
+            open={showExportConfirmModal}
+            type="info"
+            title="Xác nhận xuất dữ liệu điểm"
+            message={`Bạn có chắc chắn muốn xuất dữ liệu điểm của lớp "${selectedClassDetail?.name}" không? File Excel sẽ được tải về máy của bạn.`}
+            confirmText="Xuất dữ liệu"
+            cancelText="Hủy"
+            onClose={() => setShowExportConfirmModal(false)}
+            onConfirm={handleConfirmExport}
+          />
+
+          <ConfirmModal
+            open={showCalculateConfirmModal}
+            type="warning"
+            title="Xác nhận tính điểm tổng kết"
+            message={`Bạn có chắc chắn muốn tính điểm tổng kết cho tất cả học sinh trong lớp "${selectedClassDetail?.name}" không? Hệ thống sẽ tự động tính điểm dựa trên các điểm thành phần đã có.`}
+            confirmText="Tính điểm"
+            cancelText="Hủy"
+            onClose={() => setShowCalculateConfirmModal(false)}
+            onConfirm={handleConfirmCalculateFinalClass}
           />
         </>
       )}
