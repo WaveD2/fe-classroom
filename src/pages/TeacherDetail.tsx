@@ -17,7 +17,7 @@ import {
   DeleteIcon
 } from "lucide-react";
 import ProfileModal from "../components/user/ProfileModal";
-import { updateProfile } from "../api/auth";
+import { updateUser } from "../api/auth";
 import ConfirmModal from "../components/common/ConfirmModal";
 
 export default function TeacherDetailPage() {
@@ -51,7 +51,7 @@ export default function TeacherDetailPage() {
   }, [id]);
   
   const handleUpdateProfile = async (userData: Partial<User>) => {
-    const response = await updateProfile(userData);
+    const response = await updateUser(String(id), userData);
     if (response?.data) {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       const updatedUser = { ...currentUser, ...response.data.data };
@@ -63,8 +63,9 @@ export default function TeacherDetailPage() {
 
   const handleDelete = (async () => {
     if (user?.name) {
-      await deleteUser(user._id || user.id);
+      const data =await deleteUser(user._id || user.id);
       setShowDeleteModal(false);
+      if(data.status === 200) navigate("/teacher");
     }
   });
 

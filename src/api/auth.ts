@@ -20,3 +20,17 @@ export const updateProfile = async (userData: Partial<User>) => {
     throw error;
   }
 };
+
+export const updateUser = async (id : string, userData: Partial<User>) => {
+  try {
+    console.log("id::", id);
+    
+    const response = await api.patch(`/user/update-user/${id}`, userData);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Có lỗi xảy ra khi cập nhật thông tin");
+    }
+    throw error;
+  }
+};

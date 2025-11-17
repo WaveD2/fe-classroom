@@ -5,7 +5,7 @@ import { User as UserType } from "../types";
 import { deleteUser, getStudentById } from "../api/user";
 import ProfileModal from "../components/user/ProfileModal";
 import ConfirmModal from "../components/common/ConfirmModal";
-import { updateProfile } from "../api/auth";
+import {  updateUser } from "../api/auth";
 
 export default function StudentDetailPage() {
   const { id } = useParams();
@@ -37,7 +37,7 @@ export default function StudentDetailPage() {
   }, [id]);
 
    const handleUpdateProfile = async (userData: Partial<UserType>) => {
-      const response = await updateProfile(userData);
+      const response = await updateUser(String(id), userData);
       if (response?.data) {
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
         const updatedUser = { ...currentUser, ...response.data.data };
