@@ -139,7 +139,7 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
           <div className="flex items-center justify-center mb-4">
             <img 
             //https://career.gpo.vn/uploads/images/truong-hoc/logo-hoc-vien-cong-nghe-buu-chinh-vien-thong-1-.jpg
-              src="../../../public/Logo-DH-Phenikaa-V-Wh.webp" 
+              src="https://cdn.haitrieu.com/wp-content/uploads/2021/11/Logo-DH-Phenikaa-V-Wh.png" 
               alt="phenikaa Logo" 
               className="h-12 w-auto object-contain max-w-full"
             />
