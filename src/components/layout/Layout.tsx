@@ -46,7 +46,7 @@ export default function Layout() {
               <div className="flex justify-between">
                 {/* Brand Section */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-indigo-600">PTIT</h3>
+                  <h3 className="text-lg font-semibold text-indigo-600">PHENIKAA</h3>
                   <p className="text-sm text-gray-600 leading-relaxed">
                     Hệ thống quản lý lớp học và điểm số thông minh, giúp giáo viên và học sinh quản lý hiệu quả.
                   </p>
@@ -57,7 +57,7 @@ export default function Layout() {
                   <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Thông tin liên hệ</h4>
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Email:</span> support@PTIT.edu.vn
+                      <span className="font-medium">Email:</span> support@phenikaa.edu.vn
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Điện thoại:</span> (024) 1234-5678
@@ -73,7 +73,7 @@ export default function Layout() {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
                   <p className="text-xs text-gray-500">
-                    © 2025 PTIT. Tất cả quyền được bảo lưu.
+                    © 2025 phenikaa. Tất cả quyền được bảo lưu.
                   </p>
                   <div className="flex space-x-4">
                     <a href="#" className="text-xs text-gray-500 hover:text-indigo-600 transition-colors">
@@ -138,8 +138,9 @@ function Sidebar({user,  sidebarOpen, setSidebarOpen }: { user: User; sidebarOpe
         <div className="h-full flex flex-col p-4">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="https://career.gpo.vn/uploads/images/truong-hoc/logo-hoc-vien-cong-nghe-buu-chinh-vien-thong-1-.jpg" 
-              alt="PTIT Logo" 
+            //https://career.gpo.vn/uploads/images/truong-hoc/logo-hoc-vien-cong-nghe-buu-chinh-vien-thong-1-.jpg
+              src="../../../public/Logo-DH-Phenikaa-V-Wh.webp" 
+              alt="phenikaa Logo" 
               className="h-12 w-auto object-contain max-w-full"
             />
           </div>
