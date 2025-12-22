@@ -405,9 +405,6 @@ export const useStudentGrade = (classId: string, studentId: string) => {
   };
 };
 
-// ===================================
-// HOOK: useClassGradeStatistics - Thống kê điểm lớp
-// ===================================
 export const useClassGradeStatistics = (classId: string) => {
   const [statistics, setStatistics] = useState<ClassGradeStatisticsResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -444,9 +441,7 @@ export const useClassGradeStatistics = (classId: string) => {
 
     try {
       const response: ClassGradeStatisticsResponse = await gradeApi.getClassGradeStatistics(classId);
-      
       if (!isMounted.current) return;
-
       setStatistics(response);
       setToCache(cacheKey, response);
     } catch (err: any) {
@@ -471,9 +466,6 @@ export const useClassGradeStatistics = (classId: string) => {
   };
 };
 
-// ===================================
-// HOOK: useGradeForm - Form operations (no state management)
-// ===================================
 export const useGradeForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

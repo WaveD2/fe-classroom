@@ -197,7 +197,6 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
           <ListSkeleton />
         ) : (
           <>
-            {/* Classes Display */}
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {classes.map((classItem, index) => (
@@ -226,7 +225,6 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
               />
             )}
 
-            {/* Empty State */}
             {classes.length === 0 && (
               <div className="text-center py-16">
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -236,7 +234,7 @@ const ClassManagement: React.FC<{ userRole: string }> = memo(({ userRole }) => {
                 <p className="text-gray-500 mb-6">
                   {search ? 'Thử thay đổi từ khóa tìm kiếm' : 'Tạo lớp học đầu tiên để bắt đầu quản lý'}
                 </p>
-                {!search && (
+                {!search && userRole === ROLE.ADMIN && (
                   <button
                     onClick={() => setShowCreateModal(true)}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"

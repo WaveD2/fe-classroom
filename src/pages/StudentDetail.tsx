@@ -6,6 +6,7 @@ import { deleteUser, getStudentById } from "../api/user";
 import ProfileModal from "../components/user/ProfileModal";
 import ConfirmModal from "../components/common/ConfirmModal";
 import {  updateUser } from "../api/auth";
+import { showSuccess } from "../components/Toast";
 
 export default function StudentDetailPage() {
   const { id } = useParams();
@@ -51,6 +52,8 @@ export default function StudentDetailPage() {
       if (user) {
         await deleteUser(user._id || user.id);
         setShowDeleteModal(false);
+        showSuccess('Xóa người sinh viên thành công');
+        navigate('/student');
       }
     });
 

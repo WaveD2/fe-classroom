@@ -11,12 +11,10 @@ const AttendanceHistory = ({
   title: string;
 }) => {
   const [filterDate, setFilterDate] = useState<string>(() => {
-    // format yyyy-MM-dd để tương thích input[type="date"]
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
   
-  // Transform students data into attendance records for filtering
   const attendanceRecords = useMemo(() => {
     const records: Array<{
       id: string;
@@ -55,7 +53,6 @@ const AttendanceHistory = ({
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h3 className="text-xl font-bold">{title}</h3>
 
@@ -70,7 +67,6 @@ const AttendanceHistory = ({
         </div>
       </div>
 
-      {/* Summary Stats */}
       {students.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">

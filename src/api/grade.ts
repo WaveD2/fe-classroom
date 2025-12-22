@@ -4,10 +4,6 @@ import {
 } from "../types";
 import api from "./api";
 
-// ===================================
-// GRADE API - Theo đúng documentation
-// ===================================
-
 // 1. Cập nhật điểm thành phần (POST /class/:classId/grades)
 // Có thể cập nhật 1 hoặc nhiều field cùng lúc
 // KHÔNG tự động tính letterGrade và gpaValue
@@ -137,11 +133,7 @@ export const getClassGradesStudent = async (classId: string, studentId: string, 
     throw error;
   }
 };
-
-// ===================================
-// UTILITY FUNCTIONS
-// ===================================
-
+ 
 // Bulk update grades - cập nhật nhiều học sinh cùng lúc (NEW API)
 export const bulkUpdateGrades = async (
   classId: string, 
@@ -166,11 +158,6 @@ export const bulkUpdateGrades = async (
     throw error;
   }
 };
-
-// ===================================
-// EXCEL IMPORT/EXPORT
-// ===================================
-
 // Tải file Excel mẫu với danh sách học sinh
 export const downloadExcelTemplate = async (classId: string) => {
   try {

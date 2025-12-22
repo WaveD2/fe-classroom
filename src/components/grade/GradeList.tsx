@@ -362,8 +362,9 @@ const GradeList = memo(({
                             <Eye className="w-5 h-5" />
                           </button>
                         )}
-                        {onEdit && (
+                        {onEdit &&  (
                           <button
+                            disabled={Boolean(grade.letterGrade)}
                             onClick={() => onEdit(grade)}
                             className="p-2 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
                             title="Chỉnh sửa"
@@ -373,6 +374,7 @@ const GradeList = memo(({
                         )}
                         {onDelete && (
                           <button
+                            disabled={Boolean(grade.letterGrade)}
                             onClick={() => setDeleteConfirm(grade._id)}
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Xóa"

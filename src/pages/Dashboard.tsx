@@ -248,7 +248,7 @@ const Dashboard = memo(({ userRole }: { userRole: string }) => {
                         : 'Tạo lớp học đầu tiên để bắt đầu'
                     }
                   </p>
-                  {!searchTerm && userRole !== ROLE.STUDENT && (
+                  {!searchTerm && userRole === ROLE.STUDENT && (
                     <Button
                       onClick={() => setShowCreateClass(true)}
                       className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"

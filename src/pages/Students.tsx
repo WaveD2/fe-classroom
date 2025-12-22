@@ -29,7 +29,6 @@ export default function StudentsPage({ userRole }: { userRole: string }) {
 
   const handleSubmit = useCallback( async (data: UserType) => {
     const response =  await createUser(data as any);
-    console.log("response: ", response);
     if(response?.data){
       fetchData(1, search);
     }

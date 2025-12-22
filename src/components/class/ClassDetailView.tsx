@@ -192,6 +192,8 @@ const ClassDetailView = ({ userRole }: {
     const fetchQrHistory = async () => {
       try {
         const response = await getAllQR({ classId: id });
+        console.log("response:::", response);
+        
         if (response?.data?.length) {
           setQrHistory(response.data);
         }
@@ -200,8 +202,6 @@ const ClassDetailView = ({ userRole }: {
       }
     };
 
-    console.log("userRole:::0", userRole);
-    
     switch (activeTab) {
       case 'students':
         fetchClass();
@@ -210,7 +210,7 @@ const ClassDetailView = ({ userRole }: {
         fetchClass();
         break;
       case 'qr':
-        if (userRole === ROLE.TEACHER) fetchQrHistory();
+        if (userRole !== ROLE.STUDENT) fetchQrHistory();
         break;
       case 'grades':
         if (userRole === ROLE.STUDENT) {
@@ -334,7 +334,7 @@ const ClassDetailView = ({ userRole }: {
                         className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span className="font-medium">Xuất dữ liệu</span>
+                        <span className="font-medium">Xuất dữ liệu điểm danh</span>
                       </Button>
                       <Button 
                         onClick={() => setShowQRGenerator(true)} 
